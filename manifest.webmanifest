@@ -1,0 +1,16 @@
+{
+  "name": "HANGAR",
+  "short_name": "HANGAR",
+  "description": "표류하는 모함의 지휘관이 되어 소녀들과 출격하고, 습격을 막고, 다른 모함들과 엮이는 방치형 함대 경영. 돌아오는 길은 노바가 안다.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
