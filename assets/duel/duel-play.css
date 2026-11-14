@@ -1,0 +1,897 @@
+/* duel-play.css  정예 대전 카드 배틀 재생 부품의 모양(2026-11-12 ART 세션).
+   쓰는 법: duel-play.js 와 함께 부른다. 게임에 붙일 때는 tools/duel-play-sync.js 가 index.html 의 표시 줄 사이에 넣는다.
+   이유: 사용자 「대전 과정이 카드 배틀 느낌이 나게」. 모양은 기존 게임 화면 디자인을 따른다
+   (사용자 11/12 「새 UI디자인이 아니라 기존 디자인으로. 새 디자인은 아직은 실험중」). 새 UI 시안(docs/art-concept)의 꼴은 쓰지 않는다.
+   기존 디자인 기준: 평평한 패널과 1px 테두리, 둥근 모서리(패널 8~12px, 단추 6px, 표시 4px), 숫자는 고정폭 글꼴, 단추는 button.act 꼴.
+   규칙: 모든 선택자는 .dp 로 시작하고 안쪽 이름과 keyframes 이름은 dp- 로 시작한다.
+   색과 글꼴은 게임 변수(--bg --panel --panel2 --line --fg --dim --cyan --mag --amber --red --green --mono)를 따르고, 변수가 없는 곳(미리 보기)에서는 같은 값으로 그린다.
+   폭은 화면이 아니라 부품 폭으로 가른다(container). 기본값은 휴대폰 꼴이고 부품 폭 720px 부터 PC 꼴.
+   색: 하늘색 = 내 편 방어막 진행, 분홍 = 상대 편, 호박색 = 차례 스킬 치명, 초록 = 회복 승리, 붉은색 = 피해 패배.
+   움직임 시간은 --dp-spd(재생 배율과 속도)에 맞춰 같이 줄어든다.
+   연출 강화(2026-11-12 사용자 「보는 재미가 있도록 좀 액티브 했으면」): 예비 동작, 돌진, 타격 정지, 넉백, 충격 고리, 줌, 숫자 튀기, 뒤집어 깔기.
+   원칙 2-9d: 움직임은 transform 과 opacity 로만, 끝없이 도는 애니메이션 없음, 효과 노드는 js 의 build 가 미리 만든 것을 돌려 쓴다.
+   닿는 시각은 js 가 노드마다 --dp-d(기본 속도 ms)로 넘기고, 타격 정지는 keyframes 안의 같은 값 구간이다. */
+.dp{--dp-bg:var(--bg,#0b0e14);--dp-panel:var(--panel,#121722);--dp-panel2:var(--panel2,#181f2e);--dp-line:var(--line,#243047);
+  --dp-fg:var(--fg,#dfe6f3);--dp-dim:var(--dim,#8b97ad);--dp-cyan:var(--cyan,#4fd8ff);--dp-mag:var(--mag,#ff5fb0);
+  --dp-amber:var(--amber,#ffc857);--dp-red:var(--red,#ff6b6b);--dp-green:var(--green,#5fe0a0);--dp-hex:#ada6ff;
+  --dp-me:var(--dp-cyan);--dp-op:var(--dp-mag);--dp-shade:rgba(6,8,14,.82);
+  --dp-num:var(--mono,"SF Mono",Menlo,Consolas,monospace);
+  --dp-kr:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  --dp-spd:1;--dp-gap:4px;
+  container-type:inline-size;container-name:dp;display:block;position:relative;outline:0;
+  color:var(--dp-fg);font:13px/1.4 var(--dp-kr);font-variant-numeric:tabular-nums;text-align:left;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.dp *,.dp *::before,.dp *::after{box-sizing:border-box}
+.dp i,.dp em{font-style:normal}
+.dp .dp-in{position:relative;overflow:hidden;background:var(--dp-panel);border:1px solid var(--dp-line);border-radius:10px}
+.dp:focus-visible .dp-in{border-color:var(--dp-cyan)}
+
+/* 머리줄 */
+.dp .dp-head{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:8px 10px 7px;
+  background:var(--dp-panel);border-bottom:1px solid var(--dp-line)}
+.dp .dp-who{min-width:0;display:flex;flex-direction:column;gap:2px}
+.dp .dp-who.dp-me{align-items:flex-start}
+.dp .dp-who.dp-op{align-items:flex-end;text-align:right}
+.dp .dp-wl{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%}
+.dp .dp-who.dp-op .dp-wl{flex-direction:row-reverse}
+.dp .dp-wr{flex:none;font-size:10px;font-weight:700;line-height:16px;padding:0 5px;border-radius:4px;color:var(--dp-me);background:rgba(79,216,255,.14)}
+.dp .dp-who.dp-op .dp-wr{color:var(--dp-op);background:rgba(255,95,176,.14)}
+.dp .dp-wn{min-width:0;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp .dp-wt{max-width:100%;min-height:14px;font-size:11px;color:var(--dp-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 받은 맥락 글. 없는 판에는 노드와 클래스를 더하지 않는다. */
+.dp .dp-ctx{display:flex;align-items:center;justify-content:flex-start;gap:6px;min-width:0;line-height:22px}
+.dp .dp-in>.dp-ctx{flex:none;padding:4px 10px 0}
+.dp .dp-ctitle{min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp .dp-ctag,.dp .dp-wtag{flex:none;max-width:100%;padding:0 6px;border-radius:4px;font-size:11px;font-weight:700;line-height:18px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--dp-dim);background:rgba(255,255,255,.07)}
+.dp .dp-t-me{color:var(--dp-me);background:rgba(79,216,255,.14)}
+.dp .dp-t-op{color:var(--dp-op);background:rgba(255,95,176,.14)}
+.dp .dp-t-am{color:var(--dp-amber);background:rgba(255,200,87,.14)}
+.dp .dp-t-red{color:var(--dp-red);background:rgba(255,107,107,.14)}
+.dp .dp-wl.dp-withtag{flex-wrap:wrap}
+.dp .dp-withtag .dp-wn{flex:1 1 36px}
+.dp .dp-who.dp-op .dp-withtag{justify-content:flex-start}
+.dp .dp-wnote{display:block;min-width:0;max-width:100%;font-size:11px;line-height:14px;color:var(--dp-amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp .dp-ltitle.dp-lctx>b{flex:none}
+.dp .dp-lctx>.dp-ctx{flex:1 1 0}
+.dp .dp-ctr{display:flex;flex-direction:column;align-items:center;gap:5px}
+.dp .dp-pips{display:flex;gap:4px}
+.dp .dp-pip{width:20px;height:5px;border-radius:3px;background:var(--dp-line);transition:background .3s,box-shadow .3s}
+.dp .dp-pip.dp-now{box-shadow:0 0 0 1px var(--dp-cyan)}
+.dp .dp-pip.dp-w{background:var(--dp-green)}
+.dp .dp-pip.dp-l{background:var(--dp-red)}
+.dp .dp-pip.dp-x{opacity:.35}
+.dp .dp-inf{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
+.dp .dp-bn{font-size:13px;font-weight:700}
+.dp .dp-rn{font:12px/1 var(--dp-num);color:var(--dp-cyan)}
+
+/* 전장 */
+.dp .dp-field{position:relative;isolation:isolate;overflow:hidden;padding:9px 6px;background:var(--dp-bg)}
+.dp .dp-rows{position:relative;display:flex;flex-direction:column;gap:7px;transition:filter .5s}
+.dp .dp-field.dp-end .dp-rows{filter:saturate(.55) brightness(.6)}
+.dp .dp-row{position:relative;display:grid}
+.dp .dp-row.dp-own{--dp-lift:-7%;--dp-from:46%}
+.dp .dp-row.dp-foe{--dp-lift:7%;--dp-from:-46%}
+.dp .dp-set{grid-area:1/1;min-width:0;display:flex;justify-content:center;gap:var(--dp-gap);visibility:hidden;pointer-events:none}
+.dp .dp-set.dp-on{visibility:visible;pointer-events:auto}
+
+/* 카드. 게임의 소녀 그림 칸(.art)과 같은 꼴: 3대4, 둥근 모서리, 1px 테두리, 등급은 왼쪽 위 표시로만 */
+/* 카드에는 z-index 를 주지 않는다. 떠오르는 숫자(z 6)가 옆 카드 위로 나오게 하려는 것. 차례 카드만 위로 올린다 */
+.dp .dp-card{position:relative;flex:0 0 calc((100% - 4 * var(--dp-gap)) / 5);min-width:0;max-width:150px;
+  --dp-qb:#2a3446;--dp-qc:#aab4c8;--dp-tilt:5deg;--dp-dx:0px;--dp-dy:0px;--dp-sx:0px;--dp-sy:0px;--dp-ux:0;--dp-uy:0;--dp-lean:0deg;
+  --dp-kx:0px;--dp-ky:0px;--dp-kr:0deg;--dp-nx:1;--dp-dg:1}
+.dp .dp-card:nth-child(odd){--dp-tilt:-5deg;--dp-nx:-1;--dp-dg:-1}
+.dp .dp-card:first-child{--dp-nx:1;--dp-dg:1}
+.dp .dp-card:last-child{--dp-nx:-1;--dp-dg:-1}
+/* 등급 색(게임의 .r-C .r-B .r-A .r-S 와 같은 짝). qb 표시 바탕, qc 표시 글, qa 카드 테두리. 히든과 등급 없는 카드는 테두리 기본색 */
+.dp .dp-card.dp-q-C{--dp-qa:#6d7890}
+.dp .dp-card.dp-q-B{--dp-qa:var(--dp-cyan);--dp-qb:#1c3d4a;--dp-qc:var(--dp-cyan)}
+.dp .dp-card.dp-q-A{--dp-qa:var(--dp-mag);--dp-qb:#3d1c4a;--dp-qc:var(--dp-mag)}
+.dp .dp-card.dp-q-S{--dp-qa:var(--dp-amber);--dp-qb:#4a3a1c;--dp-qc:var(--dp-amber)}
+.dp .dp-card.dp-q-H{--dp-qb:#4a3a1c;--dp-qc:#221600}
+.dp .dp-card.dp-act,.dp .dp-card.dp-hot{z-index:4}
+.dp .dp-card.dp-atk{z-index:5}
+.dp .dp-cm{position:relative;transform-origin:50% 55%;will-change:transform;
+  transition:transform calc(240ms * var(--dp-spd)) cubic-bezier(.2,.9,.3,1.25),filter calc(480ms * var(--dp-spd))}
+.dp .dp-card.dp-act .dp-cm{transform:translateY(var(--dp-lift)) scale(1.07)}
+.dp .dp-card.dp-down .dp-cm{transform:translateY(7%) rotate(var(--dp-tilt)) scale(.93);filter:grayscale(1) brightness(.4)}
+.dp .dp-fr{position:relative;overflow:hidden;background:var(--dp-panel);border:1px solid var(--dp-qa,var(--dp-line));border-radius:8px}
+.dp .dp-card.dp-act .dp-fr{border-color:var(--dp-amber);box-shadow:0 0 0 2px var(--dp-amber)}   /* 차례 표시는 등급 테두리(1px)와 헷갈리지 않게 굵은 고리 */
+.dp .dp-pt{position:relative;aspect-ratio:3/4;overflow:hidden;background:radial-gradient(circle at 30% 25%,#1f2b40,#0f141f 70%)}
+.dp .dp-pt::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none}
+.dp .dp-ph{position:absolute;inset:0;display:grid;place-items:center;font-size:24px;font-weight:700;color:rgba(255,255,255,.2)}
+.dp .dp-art{position:absolute;inset:0}
+.dp .dp-art.dp-noart{display:none}
+.dp .dp-art .dp-im,.dp .dp-art .art img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 10%}
+/* 게임 그림 꼴(div.art 안의 img)이 카드 안에서 꽉 차게. 겹쳐 그리는 띠는 숨기고 그림이 없으면 이름 첫 글자 판이 보인다 */
+.dp .dp-art .art{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;margin:0;border:0;border-radius:0;background:none}
+.dp .dp-art .art>*:not(img){display:none}
+.dp .dp-art .art.fb{display:none}
+.dp .dp-rar{position:absolute;left:3px;top:3px;z-index:3;padding:0 4px;border-radius:4px;font-size:10px;font-weight:700;line-height:14px;color:var(--dp-qc);background:var(--dp-qb)}
+.dp .dp-rar:empty{display:none}
+.dp .dp-card.dp-q-H .dp-rar{background:linear-gradient(135deg,#ffe08a,#e0a020)}
+/* 숙련 단계 작은 표시(보고서의 sk.lv 가 첫 단계를 넘은 소녀만 노드가 있다). 등급 표시 아래. 격납고 스킬 부품의 작은 표시(.dsk-chip)와 같은 꼴이고 세 대전 부품(dlb-prof df-prof dp-prof)이 같은 값을 쓴다 */
+.dp .dp-prof{position:absolute;left:3px;top:19px;z-index:3;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:22px;height:14px;padding:0 4px;border-radius:4px;color:var(--dp-amber);background:var(--dp-shade);box-shadow:inset 0 0 0 1px rgba(255,200,87,.4);font:700 10px/14px var(--dp-num);white-space:nowrap}
+.dp .dp-prof::before{content:"";flex:none;width:5px;height:5px;border-radius:1px;background:currentColor;transform:rotate(45deg)}
+.dp .dp-cls{position:absolute;right:3px;top:3px;z-index:3;width:16px;height:16px;display:grid;place-items:center;border-radius:4px;font-size:9px;font-weight:700;line-height:1;
+  color:var(--dp-cyan);background:var(--dp-shade)}
+.dp .dp-cls svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.dp .dp-cls svg .a{fill:var(--dp-mag);stroke:none}
+.dp .dp-cls svg .g{fill:var(--dp-amber);stroke:none}
+.dp .dp-nb{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;flex-direction:column;align-items:center;padding:1px 2px 2px;text-align:center;background:var(--dp-shade)}
+.dp .dp-nm{max-width:100%;font-size:10px;font-weight:400;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp .dp-jb{max-width:100%;font-size:9px;line-height:1.2;color:var(--dp-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp .dp-jb.dp-job{color:var(--dp-fg)}
+.dp .dp-jn{margin-left:2px;font:9px/1 var(--dp-num);color:var(--dp-amber)}
+.dp .dp-shn{position:absolute;right:2px;bottom:29px;z-index:3;padding:0 3px;border-radius:3px;font:9px/12px var(--dp-num);color:var(--dp-cyan);background:var(--dp-shade)}
+.dp .dp-shn:empty{display:none}
+.dp .dp-card.dp-shd .dp-pt::after{box-shadow:inset 0 0 0 1px var(--dp-cyan)}
+.dp .dp-st{padding:4px 3px 3px;background:var(--dp-panel)}
+.dp .dp-hp{position:relative;height:5px;overflow:hidden;border-radius:3px;background:var(--dp-line)}
+/* 막대는 너비가 아니라 가로 배율(--dp-v 0~1)로 줄인다. 다시 배치를 일으키지 않게(원칙 2-9d 움직임은 transform opacity). */
+.dp .dp-hpg,.dp .dp-hpf,.dp .dp-sh{position:absolute;left:0;top:0;bottom:0;width:100%;transform-origin:0 50%;transform:scaleX(var(--dp-v,1))}
+/* 막대는 맞는 순간(--dp-bd, js 가 카드에 적는다)에 줄기 시작한다 */
+.dp .dp-hpg{background:var(--dp-fg);opacity:.6;transition:transform calc(520ms * var(--dp-spd)) ease-out calc((var(--dp-bd,0) + 300) * 1ms * var(--dp-spd))}
+.dp .dp-hpf{background:var(--dp-green);transition:transform calc(170ms * var(--dp-spd)) ease-out calc(var(--dp-bd,0) * 1ms * var(--dp-spd))}
+.dp .dp-card.dp-low .dp-hpf{background:var(--dp-red)}
+.dp .dp-sh{bottom:auto;--dp-v:0;height:2px;background:var(--dp-cyan);transition:transform calc(220ms * var(--dp-spd)) ease-out calc(var(--dp-bd,0) * 1ms * var(--dp-spd))}
+.dp .dp-hpn{display:none}
+.dp .dp-fxs{display:flex;align-items:center;height:13px;margin-top:3px}
+.dp .dp-fx{flex:none;display:grid;place-items:center;width:0;height:13px;opacity:0;overflow:hidden;border-radius:3px;color:var(--dp-ec,var(--dp-fg));background:rgba(255,255,255,.07);
+  transition:opacity calc(260ms * var(--dp-spd))}   /* 너비는 바로 바뀌고 흐림만 전환한다(원칙 2-9d) */
+.dp .dp-fx.dp-on{width:12px;margin-right:1px;opacity:1}
+.dp .dp-fx svg{flex:none;width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.dp .dp-fx.dp-e1{--dp-ec:var(--dp-cyan)}
+.dp .dp-fx.dp-e2{--dp-ec:#ff8a6a}
+.dp .dp-fx.dp-e3{--dp-ec:#ffd76a}
+.dp .dp-fx.dp-e4{--dp-ec:var(--dp-mag)}
+.dp .dp-fx.dp-e5{--dp-ec:var(--dp-red)}
+.dp .dp-fx.dp-e6{--dp-ec:#ff7a2e}
+.dp .dp-fx.dp-e7{--dp-ec:var(--dp-green)}
+.dp .dp-fx.dp-e8{--dp-ec:#b6ffe0}
+.dp .dp-fx.dp-e9{--dp-ec:var(--dp-amber)}
+.dp .dp-fx.dp-e10{--dp-ec:var(--dp-amber)}
+.dp .dp-fx.dp-e11{--dp-ec:var(--dp-hex)}
+.dp .dp-fx.dp-pop{animation:dp-pop calc(520ms * var(--dp-spd)) calc(130ms * var(--dp-spd)) cubic-bezier(.2,1.5,.4,1) both}
+.dp .dp-fxn{font:9px/1 var(--dp-num);color:var(--dp-dim)}
+
+/* 카드 위 번쩍임과 베는 선 */
+.dp .dp-fl{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0}
+.dp .dp-fl.dp-go{animation:dp-flash calc(400ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+.dp .dp-fl.dp-f-hit.dp-go{animation-name:dp-flashh}
+.dp .dp-fl.dp-f-hit{background:rgba(255,255,255,.85)}
+.dp .dp-fl.dp-f-sh{background:rgba(79,216,255,.5)}
+.dp .dp-fl.dp-f-heal{background:rgba(95,224,160,.55)}
+.dp .dp-fl.dp-f-burn{background:rgba(255,122,46,.6)}
+.dp .dp-fl.dp-f-bad{background:rgba(173,166,255,.55)}
+.dp .dp-fl.dp-f-buff{background:rgba(255,200,87,.55)}
+.dp .dp-sl{position:absolute;inset:-22%;z-index:5;pointer-events:none;opacity:0}
+.dp .dp-sl.dp-s-slash{background:linear-gradient(115deg,transparent 46%,rgba(255,255,255,.95) 49.6%,rgba(255,255,255,.95) 50.4%,transparent 54%)}
+.dp .dp-sl.dp-s-pierce{background:linear-gradient(180deg,transparent 46.5%,var(--dp-amber) 48.5%,#fff 50%,var(--dp-amber) 51.5%,transparent 53.5%)}
+.dp .dp-sl.dp-go.dp-s-slash{animation:dp-slash calc(300ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+.dp .dp-sl.dp-go.dp-s-pierce{animation:dp-pierce calc(340ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+/* 빛 훑기: 차례가 온 카드(흰 빛), 강화(호박색), 회복(초록 빛이 아래에서 위로), 약화(보라 물결) */
+.dp .dp-sw{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0}
+.dp .dp-sw.dp-w-turn{background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.5) 50%,transparent 64%)}
+.dp .dp-sw.dp-w-buff{background:linear-gradient(105deg,transparent 22%,rgba(255,200,87,.8) 50%,transparent 78%)}
+.dp .dp-sw.dp-w-heal{background:linear-gradient(0deg,transparent 12%,rgba(95,224,160,.85) 50%,transparent 88%)}
+.dp .dp-sw.dp-w-hex{background:repeating-linear-gradient(180deg,transparent 0 9%,rgba(173,166,255,.75) 13% 17%,transparent 21% 30%)}
+.dp .dp-sw.dp-w-turn.dp-go{animation:dp-glint calc(460ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+.dp .dp-sw.dp-w-buff.dp-go{animation:dp-glint calc(540ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+.dp .dp-sw.dp-w-heal.dp-go{animation:dp-mend calc(580ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+.dp .dp-sw.dp-w-hex.dp-go{animation:dp-hexw calc(580ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-in-out both}
+/* 쓰러질 때 카드 위에 한 번 번쩍이는 금 */
+.dp .dp-ck{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0}
+.dp .dp-ck::before{content:"";position:absolute;inset:0;background:#fff;clip-path:polygon(42% 0,36% 18%,50% 34%,38% 52%,53% 70%,45% 100%,51% 100%,59% 70%,44% 52%,56% 34%,72% 42%,57% 30%,42% 18%,48% 0)}
+.dp .dp-ck::after{content:"";position:absolute;inset:0;background:#05070c;clip-path:polygon(43.5% 0,37.5% 18%,51.5% 34%,39.5% 52%,54.5% 70%,46.5% 100%,49.5% 100%,57.5% 70%,42.5% 52%,54.5% 34%,40.5% 18%,46.5% 0)}
+.dp .dp-ck.dp-go{animation:dp-crack calc(640ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+
+/* 카드 움직임. 공격하는 쪽은 .dp-cm, 맞는 쪽 반응은 안쪽 그림 틀 .dp-fr 에서 돈다(돌아오던 카드가 곧바로 맞아도 두 움직임이 겹쳐 돌아 튀지 않는다).
+   keyframes 에 처음과 끝을 적지 않아 지금 자세(차례 카드, 쓰러진 카드)에서 시작해 그 자세로 돌아온다.
+   공격 한 번 = 예비 동작(물러나며 기움) → 돌진 → 타격 정지(같은 값 구간) → 반동 → 탄성 복귀. --dp-slo 는 마무리 일격의 느린 화면 배율 */
+.dp .dp-cm.dp-lunge{animation:dp-lunge calc(600ms * var(--dp-spd) * var(--dp-slo,1)) cubic-bezier(.3,0,.25,1)}
+.dp .dp-cm.dp-lungec{animation:dp-lungec calc(660ms * var(--dp-spd) * var(--dp-slo,1)) cubic-bezier(.3,0,.25,1)}
+.dp .dp-cm.dp-lunge2{animation:dp-lunge2 calc(500ms * var(--dp-spd) * var(--dp-slo,1)) cubic-bezier(.3,0,.25,1)}
+.dp .dp-cm.dp-shot{animation:dp-shot calc(520ms * var(--dp-spd) * var(--dp-slo,1)) cubic-bezier(.3,0,.25,1)}
+.dp .dp-cm.dp-riposte{animation:dp-riposte calc(380ms * var(--dp-spd) * var(--dp-slo,1)) cubic-bezier(.3,0,.25,1)}
+.dp .dp-cm.dp-chase{animation:dp-chase calc(460ms * var(--dp-spd) * var(--dp-slo,1)) cubic-bezier(.3,0,.25,1)}
+.dp .dp-cm.dp-ko{animation:dp-ko calc(760ms * var(--dp-spd) * var(--dp-slo,1)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.3,.2,.3,1) backwards}
+.dp .dp-cm.dp-stun{animation:dp-stun calc(460ms * var(--dp-spd)) ease-in-out}
+.dp .dp-cm.dp-cast{animation:dp-cast calc(460ms * var(--dp-spd)) ease-out}
+.dp .dp-cm.dp-boost{animation:dp-boost calc(440ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out}
+/* 맞는 쪽: 닿는 순간 눌린 채 멈췄다가(타격 정지) 공격이 온 방향으로 밀려나 돌아온다. 세기는 js 가 --dp-kx --dp-ky --dp-kr 로 넘긴다 */
+.dp .dp-fr.dp-hit1{animation:dp-knock calc(300ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.2,.7,.3,1)}
+.dp .dp-fr.dp-hit{animation:dp-knock calc(400ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.2,.7,.3,1)}
+.dp .dp-fr.dp-hit3{animation:dp-knock calc(460ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.2,.7,.3,1)}
+.dp .dp-fr.dp-hitc{animation:dp-knockc calc(580ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.2,.7,.3,1)}
+.dp .dp-fr.dp-sting{animation:dp-sting calc(300ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out}
+.dp .dp-fr.dp-dodge{animation:dp-dodge calc(440ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out}
+.dp .dp-fr.dp-block{animation:dp-block calc(340ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out}
+/* 맞는 순간 체력 막대가 한 번 움찔한다 */
+.dp .dp-fr.dp-hit1 .dp-hp,.dp .dp-fr.dp-hit .dp-hp,.dp .dp-fr.dp-hit3 .dp-hp,.dp .dp-fr.dp-hitc .dp-hp,.dp .dp-cm.dp-ko .dp-hp{animation:dp-flinch calc(280ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out}
+/* 전장 줄: 여러 대상 공격의 흔들림, 치명의 줌 펀치(중심은 js 가 transform-origin 으로 맞는 카드에 둔다) */
+.dp .dp-rows.dp-quake{animation:dp-quake calc(340ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) linear}
+.dp .dp-rows.dp-zoom{animation:dp-zoom calc(620ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.2,.7,.3,1)}
+.dp .dp-rows.dp-zoom2{animation:dp-zoom2 calc(520ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.2,.7,.3,1)}
+/* 소대전 시작: 뒷면으로 깔렸다가 차례로 뒤집힌다(4배에서는 dp-deal4 로 바로 깐다). 끝: 이긴 편의 남은 카드가 차례로 뛰어오르고 진 편은 가라앉는다.
+   카드 뿌리에서 돌아 안쪽 움직임(.dp-cm .dp-fr)과 겹치지 않는다. --dp-ims 는 시작 장면 길이(js 가 전장에 적는다) */
+.dp .dp-set.dp-deal .dp-card{animation:dp-deal var(--dp-ims,1200ms) calc(var(--dp-k,0) * .04 * var(--dp-ims,1200ms)) cubic-bezier(.3,.6,.3,1) backwards}
+.dp .dp-set.dp-deal .dp-bk{animation:dp-back var(--dp-ims,1200ms) calc(var(--dp-k,0) * .04 * var(--dp-ims,1200ms)) linear backwards}
+.dp .dp-set.dp-deal4 .dp-card{animation:dp-deal4 calc(520ms * var(--dp-spd)) calc(var(--dp-k,0) * 60ms * var(--dp-spd)) cubic-bezier(.2,.9,.3,1.1) backwards}
+.dp .dp-set.dp-cheer .dp-card:not(.dp-down){animation:dp-hop calc(480ms * var(--dp-spd)) calc(var(--dp-k,0) * 85ms * var(--dp-spd)) cubic-bezier(.3,0,.3,1)}
+.dp .dp-set.dp-sink .dp-card{animation:dp-sink calc(900ms * var(--dp-spd)) ease-out forwards}
+/* 카드 뒷면: 기존 디자인의 평평한 패널에 가운데 작은 마름모 */
+.dp .dp-bk{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;border:1px solid var(--dp-line);border-radius:8px;background:var(--dp-panel2)}
+.dp .dp-bk::before{content:"";position:absolute;left:50%;top:50%;width:22%;aspect-ratio:1;border:1px solid var(--dp-dim);border-radius:2px;transform:translate(-50%,-50%) rotate(45deg)}
+.dp .dp-bk::after{content:"";position:absolute;inset:4px;border:1px solid var(--dp-line);border-radius:5px}
+/* 충격 고리와 불꽃 조각. 카드마다 미리 만든 노드를 돌려 쓴다. 색은 공격 편 색, 치명은 호박색 */
+.dp .dp-rg{position:absolute;left:7%;top:0;z-index:5;width:86%;margin-top:23.7%;aspect-ratio:1;pointer-events:none;opacity:0;border-radius:50%;border:2px solid var(--dp-rc);--dp-rc:#fff}
+.dp .dp-rg.dp-r-me,.dp .dp-sp.dp-r-me{--dp-rc:var(--dp-me)}
+.dp .dp-rg.dp-r-op,.dp .dp-sp.dp-r-op{--dp-rc:var(--dp-op)}
+.dp .dp-rg.dp-r-crit,.dp .dp-sp.dp-r-crit{--dp-rc:var(--dp-amber)}
+.dp .dp-rg.dp-r-big{border-width:3px}
+.dp .dp-rg.dp-go{animation:dp-ring calc(380ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.15,.7,.3,1) both}
+.dp .dp-rg.dp-r-big.dp-go{animation:dp-ring2 calc(480ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.15,.7,.3,1) both}
+/* 방어막 고리: 카드를 감싸는 둥근 네모. 얻을 때는 조여 들고 막을 때는 튕긴다 */
+.dp .dp-rg.dp-r-sh,.dp .dp-rg.dp-r-block{left:-4%;width:108%;margin-top:-4%;aspect-ratio:3/4.3;border-radius:10px;--dp-rc:var(--dp-cyan)}
+.dp .dp-rg.dp-r-sh.dp-go{animation:dp-wrap calc(540ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.2,.8,.3,1) both}
+.dp .dp-rg.dp-r-block.dp-go{animation:dp-bounce calc(420ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+.dp .dp-sp{position:absolute;left:-25%;top:0;z-index:5;width:150%;margin-top:-8.3%;aspect-ratio:1;pointer-events:none;opacity:0;--dp-rc:#fff;
+  background:repeating-conic-gradient(from 8deg,var(--dp-rc) 0 2.5deg,transparent 2.5deg 45deg),repeating-conic-gradient(from 29deg,#fff 0 1.5deg,transparent 1.5deg 72deg);
+  -webkit-mask:radial-gradient(circle closest-side,transparent 26%,#000 30%,#000 52%,transparent 62%);mask:radial-gradient(circle closest-side,transparent 26%,#000 30%,#000 52%,transparent 62%)}
+.dp .dp-sp.dp-go{animation:dp-spark calc(340ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.1,.7,.3,1) both}
+
+/* 떠오르는 숫자. 카드마다 미리 만든 노드를 돌려 쓴다. 숫자는 게임의 고정폭 글꼴 */
+.dp .dp-num{position:absolute;left:50%;top:36%;z-index:6;display:flex;flex-direction:column;align-items:center;gap:1px;pointer-events:none;opacity:0;white-space:nowrap;
+  transform:translate(-50%,-50%);font:700 18px/1 var(--dp-num);color:#fff;text-shadow:0 1px 0 #000,0 0 4px #000,0 0 8px rgba(0,0,0,.8);--dp-nk:0}
+.dp .dp-card:first-child .dp-num{left:60%}
+.dp .dp-card:last-child .dp-num{left:40%}
+.dp .dp-card:only-child .dp-num{left:50%}
+.dp .dp-row.dp-own .dp-num:not(.dp-n-pas){top:47%}   /* 아래 줄 카드의 숫자가 가운데 행동 글 띠를 덮지 않게 카드 안에서 떠오른다 */
+.dp .dp-num b{font:inherit}
+.dp .dp-num.dp-n-long b{font-size:.8em}   /* 여섯 글자부터(12,345) 는 카드 폭에 맞게 조금 작게 */
+.dp .dp-num i{font:700 10px/1.1 var(--dp-kr)}
+.dp .dp-num b:empty,.dp .dp-num i:empty{display:none}
+.dp .dp-num b:empty+i{font-size:12px}
+/* 튀어 올라 옆으로 살짝 포물선을 그리며 떨어진다(--dp-nx 는 카드 자리에 따라 번갈아). 치명은 도장처럼 찍힌 뒤 떨린다. 금방 사라져 글 띠와 표시를 오래 가리지 않는다 */
+.dp .dp-num.dp-go{animation:dp-rise calc(900ms * max(var(--dp-spd),.7)) calc((var(--dp-d,0) + var(--dp-nk) * 70) * 1ms * var(--dp-spd)) cubic-bezier(.3,.5,.5,1) both}
+.dp .dp-num.dp-n-crit.dp-go{animation-name:dp-crit}
+.dp .dp-num.dp-n-dmg{color:#fff}
+.dp .dp-num.dp-n-dmg i{color:var(--dp-red)}
+.dp .dp-num.dp-n-crit{font-size:24px;color:var(--dp-amber)}
+.dp .dp-num.dp-n-crit i{font-size:11px}
+.dp .dp-num.dp-n-burn{font-size:15px;color:#ff8a6a}
+.dp .dp-num.dp-n-heal{color:var(--dp-green)}
+.dp .dp-num.dp-n-sm{font-size:14px}
+.dp .dp-num.dp-n-sh{font-size:15px;color:var(--dp-cyan)}
+.dp .dp-num.dp-n-bad{color:var(--dp-hex)}
+.dp .dp-num.dp-n-buff{color:var(--dp-amber)}
+.dp .dp-num.dp-n-miss{color:var(--dp-dim)}
+.dp .dp-num.dp-n-pas{top:12%;color:var(--dp-cyan);text-shadow:none}
+.dp .dp-num.dp-n-pas i{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;border:1px solid var(--dp-cyan);background:var(--dp-shade)}
+
+/* 가운데 행동 글 띠와 라운드 알림 */
+.dp .dp-mid{position:relative;z-index:-1;isolation:isolate;height:42px;display:flex;align-items:center;justify-content:center;gap:7px;padding:0 18px;white-space:nowrap;overflow:hidden}
+.dp .dp-mid::before{content:"";position:absolute;inset:4px 6px;z-index:-1;border-radius:6px;background:var(--dp-panel);border:1px solid var(--dp-line)}
+.dp .dp-mid.dp-own::before{border-left:2px solid var(--dp-me)}
+.dp .dp-mid.dp-foe::before{border-right:2px solid var(--dp-op)}
+.dp .dp-ma{min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.dp .dp-ms{flex:none;font-size:14px;font-weight:700;color:var(--dp-amber)}
+.dp .dp-mt{min-width:0;font-size:12px;color:var(--dp-dim);overflow:hidden;text-overflow:ellipsis}
+.dp .dp-mt:not(:empty)::before{content:"\2192";margin-right:5px}
+.dp .dp-rd{position:absolute;inset:4px 6px;z-index:2;display:grid;place-items:center;pointer-events:none;opacity:0;border-radius:6px;font:700 14px/1 var(--dp-num);letter-spacing:.12em;text-indent:.12em;
+  color:var(--dp-cyan);background:var(--dp-panel2);border:1px solid var(--dp-cyan)}
+.dp .dp-rd.dp-go{animation:dp-rd calc(660ms * var(--dp-spd)) ease-out both}
+
+/* 공격 줄기와 치명 가장자리 번쩍임. 줄기 노드는 전장에 미리 만든 여덟 개를 돌려 쓴다.
+   원거리(dp-b-bolt): 가는 줄기와 날아가 닿는 탄두. 근접(dp-b-trail): 돌진 길에 남는 넓고 짧은 잔상(폭 --dp-bw 는 카드 폭의 절반) */
+.dp .dp-beam{position:absolute;left:0;top:0;z-index:5;width:0;height:0;pointer-events:none;transform-origin:0 50%;--dp-bc:var(--dp-me);--dp-bw:0px}
+.dp .dp-beam>i{position:absolute;left:0;right:0;top:-1.5px;height:3px;opacity:0;transform-origin:0 50%;border-radius:2px;
+  background:linear-gradient(90deg,transparent,var(--dp-bc) 35%,#fff 92%)}
+.dp .dp-beam>b{position:absolute;left:-7px;top:-7px;width:100%;height:14px;opacity:0;background:radial-gradient(circle at 7px 50%,#fff 0 2.5px,var(--dp-bc) 4px,transparent 7px) no-repeat}
+.dp .dp-beam.dp-b-me{--dp-bc:var(--dp-me)}
+.dp .dp-beam.dp-b-op{--dp-bc:var(--dp-op)}
+.dp .dp-beam.dp-b-aid{--dp-bc:var(--dp-green)}
+.dp .dp-beam.dp-b-hex{--dp-bc:var(--dp-hex)}
+.dp .dp-beam.dp-b-aid>i,.dp .dp-beam.dp-b-hex>i{top:-1px;height:2px}
+.dp .dp-beam.dp-b-big>i{top:-3px;height:6px}
+.dp .dp-beam.dp-b-trail>i{top:calc(var(--dp-bw) * -.5);height:var(--dp-bw);border-radius:calc(var(--dp-bw) * .5);background:linear-gradient(90deg,transparent,var(--dp-bc))}
+.dp .dp-beam.dp-b-trail>b{display:none}
+.dp .dp-beam.dp-b-bolt.dp-go>i{animation:dp-bolt calc(300ms * var(--dp-spd) * var(--dp-slo,1)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+.dp .dp-beam.dp-b-bolt.dp-go>b{animation:dp-head calc(100ms * var(--dp-spd) * var(--dp-slo,1)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) cubic-bezier(.4,0,.9,.6) both}
+.dp .dp-beam.dp-b-trail.dp-go>i{animation:dp-trail calc(320ms * var(--dp-spd) * var(--dp-slo,1)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+.dp .dp-edge{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;box-shadow:inset 0 0 0 2px var(--dp-amber),inset 0 0 28px rgba(255,200,87,.45)}
+.dp .dp-edge.dp-go{animation:dp-flash calc(480ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) ease-out both}
+/* 여러 대상 공격: 대상 줄을 가로지르는 충격파. 줄마다 미리 만든 노드 하나 */
+.dp .dp-shock{position:absolute;left:41%;top:-6%;bottom:-6%;z-index:5;width:18%;pointer-events:none;opacity:0;--dp-sd:1;--dp-bc:var(--dp-me);
+  background:linear-gradient(90deg,transparent,var(--dp-bc) 78%,#fff 90%,transparent 96%)}
+.dp .dp-shock.dp-b-op{--dp-bc:var(--dp-op)}
+.dp .dp-shock.dp-go{animation:dp-shock calc(360ms * var(--dp-spd)) calc(var(--dp-d,0) * 1ms * var(--dp-spd)) linear both}
+/* 컷인과 마무리 일격 때 전장을 살짝 어둡게 덮는 층. 차례 카드와 맞는 카드(z 4 5)는 그 위에 남는다 */
+.dp .dp-dim{position:absolute;inset:-30px;z-index:3;pointer-events:none;opacity:0;background:#04060b}
+.dp .dp-dim.dp-go{animation:dp-dim var(--dp-dimms,600ms) ease-out both}
+/* 소대전 시작에 가운데 찍히는 글 */
+.dp .dp-vs{position:absolute;left:50%;top:50%;z-index:9;pointer-events:none;opacity:0;transform:translate(-50%,-50%);font:700 40px/1 var(--dp-num);letter-spacing:.08em;text-indent:.08em;
+  color:var(--dp-fg);text-shadow:-2px 0 0 var(--dp-me),2px 0 0 var(--dp-op),0 2px 6px #000}
+.dp .dp-vs.dp-go{animation:dp-vs calc(var(--dp-ims,1200ms) * .5) calc(var(--dp-ims,1200ms) * .54) cubic-bezier(.2,.9,.3,1) both}
+
+/* 스킬 컷인. 어두운 띠 위에 소녀 그림 칸과 스킬 이름 */
+.dp .dp-cut{position:absolute;left:0;right:0;top:50%;z-index:8;height:74px;margin-top:-37px;pointer-events:none;opacity:0;--dp-cutms:560ms;--dp-dir:1}
+.dp .dp-cut.dp-foe{--dp-dir:-1}
+.dp .dp-cut.dp-go{animation:dp-cut var(--dp-cutms) cubic-bezier(.15,.85,.25,1) both}
+.dp .dp-cp{position:absolute;inset:0;isolation:isolate;display:flex;align-items:center;gap:12px;padding:0 12%;overflow:hidden;
+  background:rgba(6,8,14,.92);border-top:1px solid var(--dp-me);border-bottom:1px solid var(--dp-me)}
+.dp .dp-cut.dp-foe .dp-cp{flex-direction:row-reverse;border-color:var(--dp-op)}
+.dp .dp-cav{position:relative;flex:0 0 45px;height:60px;overflow:hidden;border-radius:8px;border:1px solid var(--dp-line);background:radial-gradient(circle at 30% 25%,#1f2b40,#0f141f 70%)}
+.dp .dp-cph{position:absolute;inset:0;display:grid;place-items:center;font-size:24px;font-weight:700;color:rgba(255,255,255,.2)}
+.dp .dp-ca{position:absolute;inset:0;background-repeat:no-repeat;background-size:cover;background-position:50% 12%}
+.dp .dp-cx{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.dp .dp-cut.dp-foe .dp-cx{align-items:flex-end;text-align:right}
+.dp .dp-cl{display:flex;align-items:baseline;gap:6px;font-size:12px;color:var(--dp-fg);white-space:nowrap}
+.dp .dp-cn{font-weight:600}
+.dp .dp-cc{font-size:11px;color:var(--dp-me)}
+.dp .dp-cut.dp-foe .dp-cc{color:var(--dp-op)}
+.dp .dp-cs{font-size:21px;font-weight:700;line-height:1.1;white-space:nowrap;color:var(--dp-amber);transform-origin:0 50%}
+.dp .dp-cut.dp-foe .dp-cs{transform-origin:100% 50%}
+/* 띠가 들어올 때: 속도선이 옆으로 흐르고, 초상은 확대된 채 밀려 들어오고, 스킬 이름은 크게 찍힌 뒤 한 번 떨린다 */
+.dp .dp-cv{position:absolute;inset:0 -30%;z-index:-1;pointer-events:none;opacity:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent) 0 16%/170px 1px repeat-x,linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent) 70px 38%/240px 1px repeat-x,
+  linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent) 20px 66%/130px 2px repeat-x,linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent) 110px 86%/210px 1px repeat-x}
+.dp .dp-cut.dp-go .dp-cv{animation:dp-lines var(--dp-cutms) linear both}
+.dp .dp-cut.dp-go .dp-cav{animation:dp-cav var(--dp-cutms) cubic-bezier(.15,.85,.25,1) both}
+.dp .dp-cut.dp-go .dp-cs{animation:dp-cs var(--dp-cutms) cubic-bezier(.2,.9,.3,1) both}
+
+/* 소대전 시작과 결과 알림 */
+.dp .dp-ban{position:absolute;left:0;right:0;top:50%;z-index:9;display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 0 14px;pointer-events:none;opacity:0;transform:translateY(-50%);--dp-banms:1500ms;
+  background:rgba(6,8,14,.92);border-top:1px solid var(--dp-cyan);border-bottom:1px solid var(--dp-cyan)}
+.dp .dp-ban.dp-win{border-color:var(--dp-green)}
+.dp .dp-ban.dp-lose{border-color:var(--dp-red)}
+.dp .dp-ban.dp-go{animation:dp-ban var(--dp-banms) var(--dp-band,0ms) ease both}
+.dp .dp-bs{font-size:12px;color:var(--dp-dim)}
+.dp .dp-bt{font-size:24px;font-weight:700;line-height:1.2;letter-spacing:.05em;text-indent:.05em}
+.dp .dp-ban.dp-win .dp-bt{color:var(--dp-green)}
+.dp .dp-ban.dp-lose .dp-bt{color:var(--dp-red)}
+.dp .dp-ban.dp-note .dp-bt{font-size:16px;letter-spacing:0;text-indent:0}
+.dp .dp-bu{font:12px/1.2 var(--dp-num);color:var(--dp-dim)}
+.dp .dp-bs:empty,.dp .dp-bu:empty{display:none}
+
+/* 진행 막대와 조작 줄. 단추는 게임의 button.act 꼴(브라우저 기본 모양을 쓰지 않는다) */
+.dp .dp-prog{height:3px;background:var(--dp-line)}
+.dp .dp-prog>i{display:block;height:100%;transform:scaleX(0);transform-origin:0 50%;background:var(--dp-cyan);transition:transform .3s linear}
+.dp .dp-ctl{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;padding:8px;background:var(--dp-panel)}
+.dp .dp-btn{-webkit-appearance:none;appearance:none;position:relative;min-width:0;min-height:46px;margin:0;padding:4px 2px;border:1px solid var(--dp-line);border-radius:6px;background:var(--dp-panel2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--dp-fg);font:12px/1.1 var(--dp-kr);letter-spacing:0;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:border-color .15s,transform .1s}
+.dp .dp-btn:hover{border-color:var(--dp-cyan)}
+.dp .dp-btn:active{transform:scale(.97)}
+.dp .dp-btn:focus{outline:0}
+.dp .dp-btn:focus-visible{border-color:var(--dp-cyan);box-shadow:0 0 0 1px var(--dp-cyan)}
+.dp .dp-btn.dp-main{border-color:var(--dp-cyan);color:var(--dp-cyan);background:rgba(79,216,255,.14);font-weight:600}
+.dp .dp-bi{display:block;width:16px;height:16px}
+.dp .dp-bi svg{display:block;width:100%;height:100%;fill:currentColor}
+.dp .dp-bi.dp-bi-pause{display:none}
+.dp.dp-playing .dp-bi.dp-bi-play{display:none}
+.dp.dp-playing .dp-bi.dp-bi-pause{display:block}
+.dp .dp-bl{white-space:nowrap}
+
+/* 기록 층. 머리줄 두 줄은 남기고 목록 하나만 세로로 민다. 펼침에는 움직임이 없다. */
+.dp .dp-ctl .dp-btn{min-width:0;padding-left:2px;padding-right:2px;font-size:11px}
+.dp .dp-log{position:absolute;inset:0;z-index:25;display:none;flex-direction:column;min-width:0;overflow:hidden;background:var(--dp-bg)}
+.dp .dp-log.dp-on{display:flex}
+.dp.dp-logview .dp-res{visibility:hidden;opacity:0;transition:none}
+.dp .dp-lhead{flex:none;padding:8px 12px;background:var(--dp-panel);border-bottom:1px solid var(--dp-line)}
+.dp .dp-ltitle{display:flex;align-items:center;gap:6px;min-width:0;margin-bottom:6px}
+.dp .dp-ltitle>b{flex:1;min-width:0;font-size:18px}
+.dp .dp-ltitle .dp-btn{min-height:40px;min-width:56px;flex:0 0 auto;flex-direction:row;padding:4px 10px;font-size:12px}
+.dp .dp-ltabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.dp .dp-ltabs .dp-btn{min-width:0;min-height:40px;flex-direction:row;gap:6px;padding:4px;font-size:12px}
+.dp .dp-ltabs .dp-btn[aria-pressed="true"]{border-color:var(--dp-cyan);background:var(--dp-panel2);color:var(--dp-cyan)}
+.dp .dp-ldot{flex:none;width:6px;height:6px;border-radius:50%}
+.dp .dp-ldot.dp-w{background:var(--dp-green)}
+.dp .dp-ldot.dp-l{background:var(--dp-red)}
+.dp .dp-lscroll{flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:10px 12px;scroll-behavior:auto}
+.dp .dp-lpanel{position:relative;width:100%;max-width:720px;margin:0 auto}
+.dp .dp-lpanel[hidden],.dp .dp-lroundbody[hidden]{display:none}
+.dp .dp-lround{min-width:0;border:1px solid var(--dp-line);border-radius:8px;margin-bottom:8px;overflow:hidden;background:var(--dp-panel)}
+.dp .dp-lroundhead{width:100%;min-height:48px;display:flex;flex-direction:row;justify-content:flex-start;gap:8px;border:0;border-radius:0;padding:8px;text-align:left;background:var(--dp-panel)}
+.dp .dp-lroundno{flex:none;font:700 17px/24px var(--dp-num)}
+.dp .dp-ltags{display:flex;flex:1;min-width:0;flex-wrap:wrap;align-items:center;gap:4px}
+.dp .dp-lchevron{flex:none;color:var(--dp-dim);font-size:16px}
+.dp .dp-open .dp-lchevron{transform:rotate(180deg)}
+.dp .dp-lroundbody{padding:0 6px 6px;min-width:0}
+.dp .dp-laction{min-width:0;padding:8px;margin-top:6px;border:1px solid var(--dp-line);border-radius:6px;background:var(--dp-panel2)}
+.dp .dp-lahead{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0;margin-bottom:4px}
+.dp .dp-lahead>.dp-lname{max-width:96px;font-size:14px}
+.dp .dp-lportrait{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 26px;width:26px;height:32px;overflow:hidden;border:1px solid var(--dp-me);border-radius:4px;background:var(--dp-panel);color:var(--dp-dim);font-size:12px}
+.dp .dp-lportrait.dp-foe{border-color:var(--dp-op)}
+/* 쓰러진 얼굴은 그림만 흐리게 하고 테두리의 편 색은 남긴다. */
+.dp .dp-lportrait.dp-fallen>*{opacity:.4;filter:grayscale(1)}
+.dp .dp-lart{position:absolute;inset:0;background-size:cover;background-position:50% 25%}
+.dp .dp-ltags .dp-lportrait{flex-basis:18px;width:18px;height:22px;font-size:10px}
+.dp .dp-ltag{display:inline-flex;align-items:center;justify-content:center;gap:3px;max-width:100%;padding:2px 5px;border:1px solid var(--dp-line);border-radius:4px;font-size:11px;line-height:14px;color:var(--dp-dim);overflow-wrap:anywhere}
+.dp .dp-ltag svg,.dp .dp-labs svg{flex:none;width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.dp .dp-lline{display:grid;grid-template-columns:10px minmax(0,88px) minmax(0,1fr);align-items:center;gap:6px;padding:5px 0;min-width:0;border-top:1px solid var(--dp-line)}
+.dp .dp-larrow{color:var(--dp-dim);font-size:11px}
+.dp .dp-lwho{display:flex;align-items:center;gap:5px;min-width:0}
+.dp .dp-lwho .dp-lportrait{flex-basis:22px;width:22px;height:28px}
+.dp .dp-lname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.dp .dp-lvalues{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0}
+.dp .dp-lnum{font:700 17px/22px var(--dp-num);max-width:100%;overflow-wrap:anywhere}
+.dp .dp-labs{display:inline-flex;align-items:center;gap:2px;min-width:0}
+.dp .dp-labs .dp-lnum{font-size:14px}
+.dp .dp-l-damage{color:var(--dp-red)}
+.dp .dp-l-heal{color:var(--dp-green)}
+.dp .dp-l-shield{color:var(--dp-cyan)}
+.dp .dp-l-skill{color:var(--dp-amber);border-color:rgba(255,200,87,.35)}
+.dp .dp-l-hex{color:var(--dp-hex)}
+.dp .dp-lsource{width:100%;color:var(--dp-dim);font-size:11px;overflow-wrap:anywhere}
+.dp .dp-lko{background:rgba(255,107,107,.09);border-radius:4px}
+.dp .dp-lcleanup{min-width:0;padding:6px;margin-top:6px;border:1px solid var(--dp-line);border-radius:6px;background:var(--dp-panel)}
+.dp .dp-lcleanup .dp-lahead{color:var(--dp-dim);font-size:11px}
+.dp .dp-lcleanup .dp-lnum{font-size:14px;line-height:18px}
+.dp .dp-lsummary{padding:12px 8px;border:1px solid var(--dp-line);border-radius:8px;background:var(--dp-panel);margin-top:12px}
+.dp .dp-lendhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.dp .dp-lendhead>b{font-size:18px}
+.dp .dp-lendhead>small{font-size:11px;color:var(--dp-dim)}
+.dp .dp-lteam{display:flex;align-items:center;gap:6px;margin-top:8px;min-width:0}
+.dp .dp-lteam>small{flex:0 0 36px;font-size:11px;color:var(--dp-dim)}
+.dp .dp-lsurvivor{flex:0 1 44px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.dp .dp-lhp{display:block;width:100%;height:3px;border-radius:2px;background:var(--dp-line);overflow:hidden}
+.dp .dp-lhp>i{display:block;width:100%;height:100%;transform-origin:0 50%;background:var(--dp-me)}
+.dp .dp-lhp>i.dp-foe{background:var(--dp-op)}
+.dp .dp-ltruncated{color:var(--dp-dim);font-size:12px;overflow-wrap:anywhere}
+
+/* 마지막 결과 화면. 본문만 세로로 밀리고 단추 줄은 항상 남는다. 그림은 전장 카드 주소를 재사용한다. */
+.dp .dp-res{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;overflow:hidden;visibility:hidden;opacity:0;background:rgba(11,14,20,.97);transition:opacity .35s,visibility 0s .35s}
+.dp .dp-res.dp-on{visibility:visible;opacity:1;transition:opacity .35s}
+.dp .dp-rbody{flex:1 1 0;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.dp .dp-rcontent{display:grid;gap:10px;align-content:center;min-height:100%;max-width:900px;margin:0 auto}
+.dp .dp-rctx{grid-column:1/-1;justify-content:center}
+.dp .dp-rnotes{grid-column:1/-1;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 12px;min-width:0;font-size:11px;line-height:18px;color:var(--dp-dim)}
+.dp .dp-rnote{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%}
+.dp .dp-rnname{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp.dp-hasctx .dp-rcontent{row-gap:8px}
+.dp .dp-rhero{display:grid;align-content:center;gap:8px;min-width:0}
+.dp .dp-rseal{position:relative;isolation:isolate;display:grid;place-items:center;min-height:44px;color:var(--dp-green)}
+.dp .dp-res.dp-lose .dp-rseal{color:var(--dp-red)}
+.dp .dp-rseal::before{content:"";position:absolute;z-index:-1;width:76px;height:76px;border:2px solid currentColor;border-radius:50%;opacity:0;pointer-events:none}
+.dp .dp-res.dp-on .dp-rseal::before{animation:dp-result-ring .75s ease-out both}
+.dp .dp-rw{position:relative;font-size:38px;font-weight:700;line-height:1.15;letter-spacing:.08em;text-indent:.08em;color:inherit}
+.dp .dp-res.dp-on .dp-rw{animation:dp-stamp .6s cubic-bezier(.2,1.3,.4,1) both}
+.dp .dp-mvp{display:flex;align-items:center;justify-content:center;gap:14px;min-width:0}
+.dp .dp-rportrait{position:relative;flex:none;width:72px;aspect-ratio:3/4;overflow:hidden;border:1px solid var(--dp-qa,var(--dp-line));border-radius:8px;background:var(--dp-panel2)}
+.dp .dp-rportrait.dp-q-C{--dp-qa:#6d7890}
+.dp .dp-rportrait.dp-q-B{--dp-qa:var(--dp-cyan)}
+.dp .dp-rportrait.dp-q-A{--dp-qa:var(--dp-mag)}
+.dp .dp-rportrait.dp-q-S{--dp-qa:var(--dp-amber)}
+.dp .dp-rart{position:absolute;inset:0;background-size:cover;background-position:50% 10%;background-repeat:no-repeat}
+.dp .dp-mvpinfo{min-width:0;max-width:220px;display:flex;flex-direction:column;gap:3px}
+.dp .dp-mvptag{font-size:10px;color:var(--dp-amber)}
+.dp .dp-mvpname{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp .dp-mvpdamage{font:700 28px/1.2 var(--dp-num);color:var(--dp-me);overflow-wrap:anywhere}
+.dp .dp-rdetail{display:grid;align-content:center;gap:8px;min-width:0}
+.dp .dp-rstats{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0;flex-wrap:wrap}
+.dp .dp-rs{position:relative;display:flex;align-items:baseline;gap:8px;font:700 34px/1.15 var(--dp-num)}
+.dp .dp-rs i{font-size:20px;color:var(--dp-dim)}
+.dp .dp-rsa{color:var(--dp-me)}
+.dp .dp-rsb{color:var(--dp-op)}
+.dp .dp-rdl{position:relative;padding:5px 8px;border-radius:6px;color:var(--dp-dim);background:var(--dp-panel2);border:1px solid var(--dp-line)}
+.dp .dp-rdl b{font:700 24px/1.1 var(--dp-num);color:var(--dp-fg)}
+.dp .dp-rdl.dp-up b{color:var(--dp-green)}
+.dp .dp-rdl.dp-dn b{color:var(--dp-red)}
+.dp .dp-rating{font-size:10px;color:var(--dp-dim);overflow-wrap:anywhere}
+.dp .dp-rl{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;min-width:0}
+.dp .dp-rr{position:relative;display:flex;flex-direction:column;gap:6px;min-width:0;min-height:104px;padding:6px;border-radius:8px;background:var(--dp-panel);border:1px solid var(--dp-line);border-top:3px solid var(--dp-line)}
+.dp .dp-rr.dp-w{border-top-color:var(--dp-green)}
+.dp .dp-rr.dp-l{border-top-color:var(--dp-red)}
+.dp .dp-rrtop{display:flex;justify-content:space-between;align-items:center;gap:3px}
+.dp .dp-rr1{font-size:10px;color:var(--dp-dim)}
+.dp .dp-rr2{font-size:18px;line-height:20px}
+.dp .dp-rr.dp-w .dp-rr2{color:var(--dp-green)}
+.dp .dp-rr.dp-l .dp-rr2{color:var(--dp-red)}
+.dp .dp-rteam{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;min-width:0;max-width:158px}
+.dp .dp-rportrait.dp-mini{width:100%;max-width:30px;border-radius:3px}
+.dp .dp-mini .dp-ph{font-size:10px}
+.dp .dp-rportrait.dp-fallen{filter:grayscale(1) brightness(.4)}
+.dp .dp-rfoe{display:flex;align-items:center;justify-content:center;gap:4px;min-height:8px}
+.dp .dp-rdot{flex:none;width:5px;height:5px;border-radius:50%;background:var(--dp-op)}
+.dp .dp-rdot.dp-fallen{opacity:.18}
+.dp .dp-rrmeta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px 4px;margin-top:auto;color:var(--dp-dim);font-size:9px;line-height:12px}
+.dp .dp-rr3{font:inherit}
+.dp .dp-rr5{font:inherit;color:var(--dp-amber)}
+.dp .dp-rewards{display:flex;align-items:center;justify-content:center;gap:12px;min-height:24px;flex-wrap:wrap}
+.dp .dp-reward{display:flex;align-items:center;gap:4px;min-width:0;font-size:11px;color:var(--dp-dim)}
+.dp .dp-reward b{font-weight:500;color:var(--dp-fg)}
+/* 받은 자원(즉시 지급)은 결과 화면의 보상 판: 호박색 테두리 판, 「획득」 꼬리표, 자원 셋이 같은 폭 칸, 아이콘 아래 큰 숫자. 점수 줄 바로 아래(소대 칸 위)에 놓는다
+   (사용자 2026-11-13 「보상 표현이 레이아웃도 좀 애매하고 너무 작다」) */
+.dp .dp-rstats{order:0}
+.dp .dp-rewards{order:1}
+.dp .dp-rl{order:2}
+.dp .dp-rewards.dp-got{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));align-items:center;justify-content:stretch;gap:6px;min-height:0;padding:9px 10px;border:1px solid rgba(255,200,87,.38);border-radius:8px;background:rgba(255,200,87,.07);flex-wrap:nowrap}
+.dp .dp-gotk{padding:0 7px;border-radius:4px;font-size:11px;font-weight:700;line-height:20px;white-space:nowrap;color:var(--dp-amber);background:rgba(255,200,87,.14)}
+.dp .dp-rewards.dp-got .dp-reward{flex-direction:column;justify-content:center;gap:4px;min-width:0;font-size:11px}
+.dp .dp-rewards.dp-got .dp-resicon svg,.dp .dp-rewards.dp-got .dp-resicon img{width:24px;height:24px}
+.dp .dp-cnt{display:flex;justify-content:center;max-width:100%;overflow:hidden;font:700 19px/1.15 var(--dp-num);color:var(--dp-fg);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dp .dp-od{flex:none;display:block;height:1.15em;overflow:hidden}
+.dp .dp-oc{flex:none;display:block}
+/* 숫자 띠: 스무 줄(0~9 두 번)짜리 글 한 덩이. 0 에서 시작해 한 바퀴를 돌고 그 자리 숫자에서 멈춘다(자기 높이의 (10+d)/20 만큼 올라간다). 끝 모습이 기본값이라 움직임을 끈 곳에서도 수가 맞게 보인다 */
+.dp .dp-roll{display:block;white-space:pre;transform:translateY(calc((10 + var(--dp-d,0)) * -5%))}
+.dp .dp-d0{--dp-d:0}
+.dp .dp-d1{--dp-d:1}
+.dp .dp-d2{--dp-d:2}
+.dp .dp-d3{--dp-d:3}
+.dp .dp-d4{--dp-d:4}
+.dp .dp-d5{--dp-d:5}
+.dp .dp-d6{--dp-d:6}
+.dp .dp-d7{--dp-d:7}
+.dp .dp-d8{--dp-d:8}
+.dp .dp-d9{--dp-d:9}
+.dp .dp-res.dp-on .dp-roll{animation:dp-roll 1s .35s cubic-bezier(.16,.84,.3,1) backwards}
+.dp .dp-res.dp-on .dp-od:nth-last-child(2n) .dp-roll{animation-duration:1.15s}
+.dp .dp-res.dp-on .dp-od:nth-last-child(3n) .dp-roll{animation-duration:1.3s}
+.dp .dp-res.dp-on .dp-rewards.dp-got{animation:dp-cpop .34s 1.6s cubic-bezier(.2,1.4,.4,1) backwards}
+@keyframes dp-roll{0%{transform:translateY(0)}}
+@keyframes dp-cpop{0%{transform:scale(1)}45%{transform:scale(1.04)}100%{transform:scale(1)}}
+.dp .dp-resicon{display:inline-flex;align-items:center;gap:2px}
+.dp .dp-resicon svg,.dp .dp-resicon img{width:16px;height:16px;object-fit:contain}
+.dp .dp-rb{position:relative;flex:none;display:flex;gap:6px;width:100%;max-width:580px}
+.dp .dp-rb .dp-btn{flex:1 1 0;min-width:0;min-height:40px;flex-direction:row;padding:4px 2px;font-size:13px}
+/* 도장, 초상, 큰 숫자, 타일, 단추 순서. 한 번만 transform opacity 로 들어온다. */
+.dp .dp-res.dp-on .dp-mvp{animation:dp-slide .42s .12s cubic-bezier(.2,.9,.3,1) backwards}
+.dp .dp-res.dp-on .dp-rs{animation:dp-slide .42s .2s cubic-bezier(.2,.9,.3,1) backwards}
+.dp .dp-res.dp-on .dp-rdl{animation:dp-slide .42s .32s cubic-bezier(.2,.9,.3,1) backwards}
+.dp .dp-res.dp-on .dp-rr{animation:dp-slidex .4s calc(.44s + var(--dp-i,0) * .09s) cubic-bezier(.2,.9,.3,1) backwards}
+.dp .dp-res.dp-on .dp-rb{animation:dp-slide .36s .78s cubic-bezier(.2,.9,.3,1) backwards}
+@keyframes dp-result-ring{0%{opacity:.6;transform:scale(.4)}100%{opacity:0;transform:scale(1.8)}}
+
+/* 값을 바로 맞출 때(소대전 바꿈, 건너뛰기)는 막대와 카드가 미끄러지지 않게 */
+.dp.dp-jump .dp-hpg,.dp.dp-jump .dp-hpf,.dp.dp-jump .dp-sh,.dp.dp-jump .dp-cm,.dp.dp-jump .dp-fx{transition:none}
+
+@keyframes dp-lunge{14%{transform:translate(calc(var(--dp-dx) * -.07),calc(var(--dp-dy) * -.07)) rotate(var(--dp-lean)) scale(1.05)}22%{transform:translate(calc(var(--dp-dx) * -.09),calc(var(--dp-dy) * -.09)) rotate(var(--dp-lean)) scale(1.04);animation-timing-function:cubic-bezier(.6,0,.9,.5)}40%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.1);animation-timing-function:linear}55%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.1);animation-timing-function:cubic-bezier(.2,.7,.3,1)}68%{transform:translate(calc(var(--dp-dx) * .8),calc(var(--dp-dy) * .8)) rotate(calc(var(--dp-lean) * -.6)) scale(1.1)}88%{transform:translate(calc(var(--dp-dx) * -.04),calc(var(--dp-dy) * -.04)) rotate(0deg) scale(1.03)}}
+@keyframes dp-lungec{13%{transform:translate(calc(var(--dp-dx) * -.09),calc(var(--dp-dy) * -.09)) rotate(calc(var(--dp-lean) * 1.5)) scale(1.07)}20%{transform:translate(calc(var(--dp-dx) * -.11),calc(var(--dp-dy) * -.11)) rotate(calc(var(--dp-lean) * 1.5)) scale(1.06);animation-timing-function:cubic-bezier(.6,0,.9,.5)}36.4%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.16);animation-timing-function:linear}57.6%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.16);animation-timing-function:cubic-bezier(.2,.7,.3,1)}70%{transform:translate(calc(var(--dp-dx) * .76),calc(var(--dp-dy) * .76)) rotate(calc(var(--dp-lean) * -.8)) scale(1.12)}90%{transform:translate(calc(var(--dp-dx) * -.05),calc(var(--dp-dy) * -.05)) rotate(0deg) scale(1.03)}}
+@keyframes dp-lunge2{0%{transform:translate(var(--dp-sx),var(--dp-sy)) rotate(0deg) scale(1.1);animation-timing-function:cubic-bezier(.6,0,.9,.5)}30%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.1);animation-timing-function:linear}47%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.1);animation-timing-function:cubic-bezier(.2,.7,.3,1)}62%{transform:translate(calc(var(--dp-dx) * .8),calc(var(--dp-dy) * .8)) rotate(calc(var(--dp-lean) * -.6)) scale(1.1)}86%{transform:translate(calc(var(--dp-dx) * -.04),calc(var(--dp-dy) * -.04)) rotate(0deg) scale(1.03)}}
+@keyframes dp-shot{12%{transform:translate(calc(var(--dp-ux) * 7%),calc(var(--dp-uy) * 5%)) rotate(0deg) scale(1.1);filter:brightness(1.15)}23%{transform:translate(calc(var(--dp-ux) * 8%),calc(var(--dp-uy) * 6%)) rotate(0deg) scale(1.12);filter:brightness(1.5);animation-timing-function:cubic-bezier(.1,.8,.2,1)}34%{transform:translate(calc(var(--dp-ux) * -14%),calc(var(--dp-uy) * -9%)) rotate(var(--dp-lean)) scale(1.02);filter:brightness(1.1)}48%{transform:translate(calc(var(--dp-ux) * -12%),calc(var(--dp-uy) * -8%)) rotate(var(--dp-lean)) scale(1.02)}76%{transform:translate(calc(var(--dp-ux) * 2%),calc(var(--dp-uy) * 1.5%)) rotate(0deg) scale(1.08)}}
+@keyframes dp-riposte{31%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.12);animation-timing-function:linear}47%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.12);animation-timing-function:cubic-bezier(.2,.7,.3,1)}66%{transform:translate(calc(var(--dp-dx) * .72),calc(var(--dp-dy) * .72)) rotate(calc(var(--dp-lean) * -.5)) scale(1.08)}}
+@keyframes dp-chase{20%{transform:translate(calc(var(--dp-dx) * .78),calc(var(--dp-dy) * .78)) rotate(0deg) scale(1.1)}30%{transform:translate(calc(var(--dp-dx) * .56),calc(var(--dp-dy) * .56)) rotate(var(--dp-lean)) scale(1.06);animation-timing-function:cubic-bezier(.6,0,.9,.5)}45%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.15);animation-timing-function:linear}58%{transform:translate(var(--dp-dx),var(--dp-dy)) rotate(0deg) scale(1.15);animation-timing-function:cubic-bezier(.2,.7,.3,1)}74%{transform:translate(calc(var(--dp-dx) * .7),calc(var(--dp-dy) * .7)) rotate(calc(var(--dp-lean) * -.5)) scale(1.08)}}
+@keyframes dp-knock{4%{transform:translate(calc(var(--dp-kx) * .12),calc(var(--dp-ky) * .12)) rotate(0deg) scale(.97)}20%{transform:translate(calc(var(--dp-kx) * .12),calc(var(--dp-ky) * .12)) rotate(0deg) scale(.97)}42%{transform:translate(var(--dp-kx),var(--dp-ky)) rotate(var(--dp-kr)) scale(1)}66%{transform:translate(calc(var(--dp-kx) * -.2),calc(var(--dp-ky) * -.2)) rotate(calc(var(--dp-kr) * -.35)) scale(1)}84%{transform:translate(calc(var(--dp-kx) * .08),calc(var(--dp-ky) * .08)) rotate(0deg) scale(1)}}
+@keyframes dp-knockc{3%{transform:translate(calc(var(--dp-kx) * .1),calc(var(--dp-ky) * .1)) rotate(0deg) scale(.94)}25%{transform:translate(calc(var(--dp-kx) * .1),calc(var(--dp-ky) * .1)) rotate(0deg) scale(.94)}44%{transform:translate(var(--dp-kx),var(--dp-ky)) rotate(var(--dp-kr)) scale(.98)}60%{transform:translate(calc(var(--dp-kx) * -.3),calc(var(--dp-ky) * -.3)) rotate(calc(var(--dp-kr) * -.5)) scale(1)}74%{transform:translate(calc(var(--dp-kx) * .18),calc(var(--dp-ky) * .18)) rotate(calc(var(--dp-kr) * .25)) scale(1)}88%{transform:translate(calc(var(--dp-kx) * -.07),calc(var(--dp-ky) * -.07)) rotate(0deg) scale(1)}}
+@keyframes dp-sting{30%{transform:translateX(-3%)}60%{transform:translateX(3%)}}
+@keyframes dp-ko{0%{transform:none;filter:brightness(1)}3%{transform:scale(.95);filter:brightness(2.6)}17%{transform:scale(.95);filter:brightness(2.6)}40%{transform:translate(var(--dp-kx),var(--dp-ky)) rotate(calc(var(--dp-kr) * 2.4)) scale(1.04);filter:brightness(1.5)}58%{transform:translate(calc(var(--dp-kx) * .55),calc(var(--dp-ky) * .55 + 4%)) rotate(calc(var(--dp-kr) * 3.2)) scale(.98);filter:brightness(1)}78%{transform:translate(calc(var(--dp-kx) * .1),8%) rotate(calc(var(--dp-tilt) * 1.4)) scale(.93)}}
+@keyframes dp-dodge{30%{transform:translateX(calc(var(--dp-dg) * 42%)) skewX(calc(var(--dp-dg) * -9deg));opacity:.35}62%{transform:translateX(calc(var(--dp-dg) * 36%)) skewX(calc(var(--dp-dg) * -3deg));opacity:.6}}
+@keyframes dp-block{12%{transform:translate(calc(var(--dp-kx) * .6),calc(var(--dp-ky) * .6)) scale(.95)}32%{transform:translate(calc(var(--dp-kx) * .6),calc(var(--dp-ky) * .6)) scale(.95)}58%{transform:translate(0,0) scale(1.05)}}
+@keyframes dp-flinch{25%{transform:scaleY(2.2)}55%{transform:scaleY(.75)}}
+@keyframes dp-stun{20%{transform:rotate(-5deg);filter:brightness(.5) saturate(.4)}45%{transform:rotate(5deg);filter:brightness(.45) saturate(.3)}70%{transform:rotate(-3deg);filter:brightness(.5) saturate(.4)}}
+@keyframes dp-cast{40%{transform:translateY(var(--dp-lift)) scale(1.15);filter:brightness(1.35)}}
+@keyframes dp-boost{40%{transform:translateY(-9%) scale(1.09);filter:brightness(1.25)}}
+@keyframes dp-quake{20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,1px)}80%{transform:translate(1px,0)}}
+@keyframes dp-zoom{5%{transform:scale(1.04)}26%{transform:scale(1.04)}38%{transform:scale(1.03) translate(-6px,3px)}50%{transform:scale(1.02) translate(6px,-3px)}62%{transform:scale(1.01) translate(-4px,2px)}76%{transform:scale(1) translate(2px,-1px)}88%{transform:scale(1) translate(-1px,0)}}
+@keyframes dp-zoom2{6%{transform:scale(1.025)}26%{transform:scale(1.025)}45%{transform:scale(1.01) translate(-3px,2px)}65%{transform:scale(1) translate(3px,-1px)}85%{transform:scale(1) translate(-1px,0)}}
+@keyframes dp-deal{0%{opacity:0;transform:perspective(600px) translateY(var(--dp-from)) rotateY(180deg) scale(.82)}8%{opacity:1}26%{opacity:1;transform:perspective(600px) translateY(0) rotateY(180deg) scale(1)}50%{transform:perspective(600px) translateY(0) rotateY(180deg) scale(1)}62%{transform:perspective(600px) translateY(calc(var(--dp-from) * -.12)) rotateY(90deg) scale(1.1)}74%{transform:perspective(600px) translateY(0) rotateY(0deg) scale(1.05)}82%{transform:perspective(600px) translateY(0) rotateY(0deg) scale(1)}}
+@keyframes dp-back{0%{opacity:1}61.9%{opacity:1}62%{opacity:0}100%{opacity:0}}
+@keyframes dp-deal4{0%{opacity:0;transform:translateY(var(--dp-from)) scale(.78) rotate(-7deg)}}
+@keyframes dp-hop{35%{transform:translateY(-13%) scale(1.05)}62%{transform:translateY(0) scale(1)}78%{transform:translateY(-4%) scale(1)}}
+@keyframes dp-sink{100%{opacity:.72;transform:translateY(5%)}}
+@keyframes dp-ring{0%{opacity:0;transform:scale(.2)}10%{opacity:1}100%{opacity:0;transform:scale(1.5)}}
+@keyframes dp-ring2{0%{opacity:0;transform:scale(.2)}8%{opacity:1}100%{opacity:0;transform:scale(2.1)}}
+@keyframes dp-wrap{0%{opacity:0;transform:scale(1.35)}35%{opacity:1;transform:scale(.98)}55%{transform:scale(1.03)}75%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
+@keyframes dp-bounce{0%{opacity:0;transform:scale(.95)}14%{opacity:1;transform:scale(.95)}42%{transform:scale(1.14)}68%{opacity:.9;transform:scale(1.04)}100%{opacity:0;transform:scale(1.1)}}
+@keyframes dp-spark{0%{opacity:0;transform:scale(.3) rotate(0deg)}10%{opacity:1}55%{opacity:.9}100%{opacity:0;transform:scale(1.05) rotate(9deg)}}
+@keyframes dp-crack{0%{opacity:0}6%{opacity:1}40%{opacity:.95}100%{opacity:0}}
+@keyframes dp-glint{0%{opacity:0;transform:translateX(-80%)}18%{opacity:1}82%{opacity:1}100%{opacity:0;transform:translateX(80%)}}
+@keyframes dp-mend{0%{opacity:0;transform:translateY(75%)}20%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateY(-75%)}}
+@keyframes dp-hexw{0%{opacity:0;transform:translateY(-22%) skewY(0deg)}20%{opacity:1}50%{transform:translateY(6%) skewY(-4deg)}80%{opacity:1}100%{opacity:0;transform:translateY(22%) skewY(0deg)}}
+@keyframes dp-bolt{0%{opacity:0;transform:scaleX(0)}30%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1) scaleY(.2)}}
+@keyframes dp-head{0%{opacity:0;transform:translateX(0)}10%{opacity:1}90%{opacity:1;transform:translateX(100%)}100%{opacity:0;transform:translateX(100%)}}
+@keyframes dp-trail{0%{opacity:0;transform:scaleX(0)}34%{opacity:.5;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1) scaleY(.4)}}
+@keyframes dp-shock{0%{opacity:0;transform:translateX(calc(var(--dp-sd) * -330%)) scaleX(var(--dp-sd))}12%{opacity:.5}80%{opacity:.4}100%{opacity:0;transform:translateX(calc(var(--dp-sd) * 330%)) scaleX(var(--dp-sd))}}
+@keyframes dp-dim{0%{opacity:0}16%{opacity:.5}76%{opacity:.5}100%{opacity:0}}
+@keyframes dp-vs{0%{opacity:0;transform:translate(-50%,-50%) scale(3)}24%{opacity:1;transform:translate(-50%,-50%) scale(.92)}34%{transform:translate(-50%,-50%) scale(1.06)}42%{transform:translate(-50%,-50%) scale(1)}74%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}}
+@keyframes dp-lines{0%{opacity:0;transform:translateX(calc(var(--dp-dir) * -22%))}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateX(calc(var(--dp-dir) * 22%))}}
+@keyframes dp-cav{0%{transform:translateX(calc(var(--dp-dir) * -90%)) scale(1.5)}26%{transform:translateX(0) scale(1.16)}80%{transform:translateX(0) scale(1.06)}100%{transform:translateX(0) scale(1.04)}}
+@keyframes dp-cs{0%{opacity:0;transform:scale(2.3) translateX(0)}14%{opacity:0;transform:scale(2.3) translateX(0)}30%{opacity:1;transform:scale(.94) translateX(0)}37%{transform:scale(1.05) translateX(-3px)}44%{transform:scale(1) translateX(3px)}51%{transform:scale(1) translateX(-1px)}58%{transform:scale(1) translateX(0)}100%{opacity:1;transform:scale(1) translateX(0)}}
+@keyframes dp-slide{0%{opacity:0;transform:translateY(12px)}}
+@keyframes dp-slidex{0%{opacity:0;transform:translateX(-26px)}}
+@keyframes dp-flash{0%{opacity:0}14%{opacity:1}100%{opacity:0}}
+@keyframes dp-flashh{0%{opacity:0}5%{opacity:1}22%{opacity:.85}100%{opacity:0}}
+@keyframes dp-slash{0%{opacity:0;transform:translate(-46%,-30%)}22%{opacity:1}100%{opacity:0;transform:translate(46%,30%)}}
+@keyframes dp-pierce{0%{opacity:0;transform:scaleX(0)}30%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1.25)}}
+@keyframes dp-pop{0%{transform:translateY(-16px) scale(0)}55%{transform:translateY(0) scale(1.8)}100%{transform:none}}
+@keyframes dp-rise{0%{opacity:0;transform:translate(-50%,calc(-30% + var(--dp-nk) * 17px)) scale(.4)}12%{opacity:1;transform:translate(calc(-50% + var(--dp-nx) * 3px),calc(-100% + var(--dp-nk) * 17px)) scale(1.4)}26%{opacity:1;transform:translate(calc(-50% + var(--dp-nx) * 7px),calc(-128% + var(--dp-nk) * 17px)) scale(1)}42%{transform:translate(calc(-50% + var(--dp-nx) * 10px),calc(-138% + var(--dp-nk) * 17px)) scale(1)}72%{opacity:1;transform:translate(calc(-50% + var(--dp-nx) * 14px),calc(-112% + var(--dp-nk) * 17px)) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--dp-nx) * 18px),calc(-60% + var(--dp-nk) * 17px)) scale(.9)}}
+@keyframes dp-crit{0%{opacity:0;transform:translate(-50%,calc(-90% + var(--dp-nk) * 17px)) scale(2.8) rotate(0deg)}11%{opacity:1;transform:translate(-50%,calc(-90% + var(--dp-nk) * 17px)) scale(.88) rotate(0deg)}17%{transform:translate(-50%,calc(-90% + var(--dp-nk) * 17px)) scale(1.14) rotate(-5deg)}23%{transform:translate(-50%,calc(-90% + var(--dp-nk) * 17px)) scale(1) rotate(4deg)}29%{transform:translate(-50%,calc(-90% + var(--dp-nk) * 17px)) scale(1) rotate(-2deg)}35%{transform:translate(-50%,calc(-90% + var(--dp-nk) * 17px)) scale(1) rotate(0deg)}74%{opacity:1;transform:translate(-50%,calc(-90% + var(--dp-nk) * 17px)) scale(1) rotate(0deg)}100%{opacity:0;transform:translate(-50%,calc(-130% + var(--dp-nk) * 17px)) scale(1) rotate(0deg)}}
+@keyframes dp-numfade{0%{opacity:0;transform:translate(-50%,calc(-85% + var(--dp-nk) * 17px))}14%{opacity:1}74%{opacity:1}100%{opacity:0;transform:translate(-50%,calc(-85% + var(--dp-nk) * 17px))}}
+@keyframes dp-rd{0%{opacity:0;transform:scaleX(.3)}18%{opacity:1;transform:none}68%{opacity:1}100%{opacity:0;transform:none}}
+@keyframes dp-beam{0%{opacity:0;transform:scaleX(0)}38%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1) scaleY(.2)}}
+@keyframes dp-cut{0%{opacity:0;transform:translateX(calc(var(--dp-dir) * -70%))}22%{opacity:1;transform:translateX(0)}74%{opacity:1;transform:translateX(calc(var(--dp-dir) * 2.5%))}100%{opacity:0;transform:translateX(calc(var(--dp-dir) * 55%))}}
+@keyframes dp-ban{0%{opacity:0;transform:translateY(-50%) scaleY(.1)}10%{opacity:1;transform:translateY(-50%) scaleY(1.07)}16%{opacity:1;transform:translateY(-50%) scaleY(1)}80%{opacity:1;transform:translateY(-50%) scaleY(1)}100%{opacity:0;transform:translateY(-50%) scaleY(1)}}
+@keyframes dp-fade{0%{opacity:0}20%{opacity:1}80%{opacity:1}100%{opacity:0}}
+@keyframes dp-stamp{0%{opacity:0;transform:scale(2.2)}60%{opacity:1;transform:scale(.96)}100%{opacity:1;transform:none}}
+
+/* 채우기 꼴(opts.fill, 2026-11-13 사용자 「화면 전체를 썼으면 좋겠어. 작은 창을 띄우지 말고」).
+   받은 칸의 높이를 다 쓴다. 부품이 크기 기준 칸(container-type:size)이 되어 높이 단위(cqh)로 카드와 띠와 단추를 키운다.
+   화면 회전이나 주소 막대 높이 변화는 CSS 가 따라간다(코드가 크기를 듣지 않는다).
+   변수는 .dp-in 에 둔다(기준 칸 자신에게는 그 칸의 단위가 듣지 않는다).
+   휴대폰 꼴: 카드 폭은 다섯 장이 한 줄이라 그대로고, 그림 칸이 세로로 길어진다(폭의 1~2.1배). 남는 높이는 줄 사이에 고르게 둔다. */
+.dp.dp-fill{container-type:size;height:100%;min-height:300px}
+.dp.dp-fill .dp-in{height:100%;display:flex;flex-direction:column;border:0;border-radius:0;   /* 화면 끝까지 붙여 쓰니 바깥 테두리와 둥근 모서리를 뺀다(안쪽 칸 구분선은 그대로) */
+  --dp-cw:min(150px,calc((100cqw - 14px - 4 * var(--dp-gap)) / 5));--dp-ph:clamp(var(--dp-cw),calc((100cqh - 296px) / 2),calc(var(--dp-cw) * 2.1))}
+.dp.dp-fill:focus-visible .dp-in{box-shadow:inset 0 0 0 1px var(--dp-cyan)}   /* 테두리가 없으니 자판 초점 표시는 안쪽 선으로 */
+.dp.dp-fill .dp-head,.dp.dp-fill .dp-prog,.dp.dp-fill .dp-ctl{flex:none}
+.dp.dp-fill .dp-field{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+.dp.dp-fill .dp-rows{flex:1 1 0;min-height:0;justify-content:space-evenly;gap:0}
+.dp.dp-fill .dp-pt{aspect-ratio:auto;height:var(--dp-ph)}
+.dp.dp-fill .dp-mid{flex:none;height:clamp(42px,8cqh,60px)}
+.dp.dp-fill .dp-ma{font-size:clamp(13px,2.1cqh,15px)}
+.dp.dp-fill .dp-ms{font-size:clamp(14px,2.3cqh,17px)}
+.dp.dp-fill .dp-btn{min-height:clamp(46px,7.5cqh,54px)}
+/* 맥락 줄, 편 덧글, 좁은 이름 줄의 여유를 그림 높이에서 뺀다. 남는 높이는 전장이 받는다. */
+.dp.dp-fill.dp-hasctx .dp-in{--dp-ph:clamp(var(--dp-cw),calc((100cqh - 366px) / 2),calc(var(--dp-cw) * 2.1))}
+
+/* PC 꼴: 부품 폭 720px 부터. 카드가 크고 위아래 줄 사이가 넓다 */
+@container dp (min-width:720px){
+  .dp .dp-in{max-width:1120px;margin:0 auto;border-radius:12px}
+  .dp .dp-head{gap:20px;padding:14px 24px 11px}
+  .dp .dp-who{gap:4px}
+  .dp .dp-wl{gap:9px}
+  .dp .dp-wr{font-size:12px;line-height:20px;padding:0 8px}
+  .dp .dp-wn{font-size:17px}
+  .dp .dp-wt{min-height:18px;font-size:13px}
+  .dp .dp-ctr{gap:8px}
+  .dp .dp-pips{gap:7px}
+  .dp .dp-pip{width:38px;height:6px}
+  .dp .dp-inf{gap:12px}
+  .dp .dp-bn{font-size:16px}
+  .dp .dp-rn{font-size:14px}
+  .dp .dp-field{padding:18px 24px}
+  .dp .dp-rows{gap:12px}
+  .dp .dp-set{--dp-gap:14px}
+  .dp .dp-card{flex-basis:min(150px,17vh,calc((100% - 56px) / 5))}
+  .dp .dp-fr{border-radius:10px}
+  .dp .dp-ph{font-size:48px}
+  .dp .dp-rar{left:5px;top:5px;font-size:12px;line-height:18px;padding:0 6px}
+  .dp .dp-prof{left:5px;top:26px}
+  .dp .dp-cls{right:5px;top:5px;width:22px;height:22px;font-size:12px}
+  .dp .dp-cls svg{width:16px;height:16px}
+  .dp .dp-nb{padding:3px 4px 4px}
+  .dp .dp-nm{font-size:13px}
+  .dp .dp-jb{font-size:11px}
+  .dp .dp-jn{font-size:11px}
+  .dp .dp-shn{right:4px;bottom:42px;padding:0 5px;font-size:12px;line-height:16px}
+  .dp .dp-st{padding:6px 5px 5px}
+  .dp .dp-hp{height:12px;border-radius:4px}
+  .dp .dp-sh{height:3px}
+  .dp .dp-hpn{display:block;position:absolute;right:5px;top:0;font:700 10px/12px var(--dp-num);color:#fff;text-shadow:0 0 3px #000,0 1px 0 #000}
+  .dp .dp-fxs{height:19px;margin-top:5px}
+  .dp .dp-fx{height:19px}
+  .dp .dp-fx.dp-on{width:19px;margin-right:3px}
+  .dp .dp-fx svg{width:15px;height:15px}
+  .dp .dp-fxn{font-size:12px}
+  .dp .dp-num,.dp .dp-card:first-child .dp-num,.dp .dp-card:last-child .dp-num{left:50%}
+  .dp .dp-num{font-size:28px}
+  .dp .dp-num i{font-size:13px}
+  .dp .dp-num b:empty+i{font-size:16px}
+  .dp .dp-num.dp-n-crit{font-size:38px}
+  .dp .dp-num.dp-n-crit i{font-size:14px}
+  .dp .dp-num.dp-n-burn,.dp .dp-num.dp-n-sh{font-size:22px}
+  .dp .dp-num.dp-n-sm{font-size:20px}
+  .dp .dp-num.dp-n-pas i{font-size:12px;padding:3px 9px}
+  .dp .dp-mid{height:56px;gap:12px;padding:0 22%}
+  .dp .dp-mid::before,.dp .dp-rd{inset:6px 20%}
+  .dp .dp-ma{font-size:16px}
+  .dp .dp-ms{font-size:18px}
+  .dp .dp-mt{font-size:14px}
+  .dp .dp-rd{font-size:18px}
+  .dp .dp-beam>i{top:-2.5px;height:5px}
+  .dp .dp-beam.dp-b-aid>i,.dp .dp-beam.dp-b-hex>i{top:-1.5px;height:3px}
+  .dp .dp-beam.dp-b-big>i{top:-4.5px;height:9px}
+  .dp .dp-beam>b{left:-12px;top:-12px;height:24px;background:radial-gradient(circle at 12px 50%,#fff 0 4.5px,var(--dp-bc) 7px,transparent 12px) no-repeat}
+  .dp .dp-bk{border-radius:10px}
+  .dp .dp-bk::after{inset:7px;border-radius:6px}
+  .dp .dp-rg{border-width:3px}
+  .dp .dp-rg.dp-r-big{border-width:5px}
+  .dp .dp-rg.dp-r-sh,.dp .dp-rg.dp-r-block{border-radius:12px}
+  .dp .dp-vs{font-size:88px;text-shadow:-4px 0 0 var(--dp-me),4px 0 0 var(--dp-op),0 3px 10px #000}
+  .dp .dp-cut{height:132px;margin-top:-66px}
+  .dp .dp-cp{gap:22px;padding:0 16%}
+  .dp .dp-cav{flex-basis:84px;height:112px;border-radius:10px}
+  .dp .dp-cph{font-size:48px}
+  .dp .dp-cl{gap:10px;font-size:15px}
+  .dp .dp-cc{font-size:13px}
+  .dp .dp-cs{font-size:36px}
+  .dp .dp-ban{gap:6px;padding:22px 0 26px}
+  .dp .dp-bs{font-size:14px}
+  .dp .dp-bt{font-size:42px}
+  .dp .dp-ban.dp-note .dp-bt{font-size:24px}
+  .dp .dp-bu{font-size:15px}
+  .dp .dp-prog{height:4px}
+  .dp .dp-ctl{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:11px 24px 14px}
+  .dp .dp-btn{flex:0 0 auto;min-width:118px;min-height:44px;flex-direction:row;gap:9px;padding:0 18px;font-size:14px}
+  .dp .dp-bi{width:17px;height:17px}
+}
+
+/* 채우기 꼴의 PC 꼴: 카드 폭을 높이에서 정한다(그림은 3대4 그대로). 폭이 넓어도 높이가 낮으면 카드가 작아져 다 들어간다 */
+@container dp (min-width:720px){
+  .dp.dp-fill .dp-in{max-width:1200px;border-radius:0;--dp-cw:min(230px,calc((100cqh - 388px) * .375),calc((100cqw - 108px) / 5))}
+  .dp.dp-fill.dp-hasctx .dp-in{--dp-cw:min(230px,calc((100cqh - 458px) * .375),calc((100cqw - 108px) / 5))}
+  .dp .dp-in>.dp-ctx{padding-left:24px;padding-right:24px}
+  .dp.dp-fill .dp-card{flex-basis:var(--dp-cw);max-width:none}
+  .dp.dp-fill .dp-pt{aspect-ratio:3/4;height:auto}
+  .dp.dp-fill .dp-mid{height:56px}
+  .dp.dp-fill .dp-ma{font-size:16px}
+  .dp.dp-fill .dp-ms{font-size:18px}
+  .dp.dp-fill .dp-btn{min-height:44px}
+}
+/* 채우기 꼴의 낮은 가로 꼴(휴대폰을 눕혔을 때): 머리줄과 조작 줄을 얇게, 카드 아래 칸을 휴대폰 크기로 */
+@container dp (min-width:720px) and (max-height:560px){
+  .dp.dp-fill .dp-in{--dp-cw:min(150px,calc((100cqh - 222px) * .375),calc((100cqw - 108px) / 5))}
+  /* 낮은 가로 꼴에서는 맥락 줄이 높이를 쓰지 않는다: 머리줄 바로 아래, 전장 왼쪽 위 빈 자리에 얹는다(카드가 절반으로 줄던 것). 편 덧글 한 줄의 여유만 뺀다 */
+  .dp.dp-fill.dp-hasctx .dp-in{--dp-cw:min(150px,calc((100cqh - 240px) * .375),calc((100cqw - 108px) / 5))}
+  .dp.dp-fill.dp-hasctx .dp-in>*{order:2}
+  .dp.dp-fill.dp-hasctx .dp-in>.dp-head{order:0}
+  .dp.dp-fill.dp-hasctx .dp-in>.dp-ctx{order:1;position:relative;z-index:3;align-items:flex-start;height:0;max-width:30%;padding:0 16px;overflow:visible;pointer-events:none}
+  .dp.dp-fill.dp-hasctx .dp-in>.dp-ctx>*{margin-top:7px}
+  .dp.dp-fill .dp-head{padding:6px 16px 5px}
+  .dp.dp-fill .dp-wt{display:none}
+  .dp.dp-fill .dp-ctr{gap:4px}
+  .dp.dp-fill .dp-field{padding:8px 16px}
+  .dp.dp-fill .dp-set{--dp-gap:8px}
+  .dp.dp-fill .dp-mid{height:34px}
+  .dp.dp-fill .dp-ma{font-size:13px}
+  .dp.dp-fill .dp-ms{font-size:14px}
+  .dp.dp-fill .dp-ctl{padding:6px 16px 8px}
+  .dp.dp-fill .dp-btn{min-height:36px}
+  .dp.dp-fill .dp-nb{padding:1px 2px 2px}
+  .dp.dp-fill .dp-nm{font-size:10px}
+  .dp.dp-fill .dp-jb{font-size:9px}
+  .dp.dp-fill .dp-jn{font-size:9px}
+  .dp.dp-fill .dp-st{padding:4px 3px 3px}
+  .dp.dp-fill .dp-hp{height:5px;border-radius:3px}
+  .dp.dp-fill .dp-hpn{display:none}
+  .dp.dp-fill .dp-fxs{height:13px;margin-top:3px}
+  .dp.dp-fill .dp-fx{height:13px}
+  .dp.dp-fill .dp-fx.dp-on{width:12px;margin-right:1px}
+  .dp.dp-fill .dp-fx svg{width:10px;height:10px}
+  .dp.dp-fill .dp-rar{left:3px;top:3px;font-size:10px;line-height:14px;padding:0 4px}
+  .dp.dp-fill .dp-prof{left:3px;top:19px}
+  .dp.dp-fill .dp-cls{right:3px;top:3px;width:16px;height:16px;font-size:9px}
+  .dp.dp-fill .dp-cls svg{width:12px;height:12px}
+  .dp.dp-fill .dp-shn{right:2px;bottom:29px;padding:0 3px;font-size:9px;line-height:12px}
+  .dp.dp-fill .dp-num{font-size:18px}
+  .dp.dp-fill .dp-num i{font-size:10px}
+  .dp.dp-fill .dp-num.dp-n-crit{font-size:24px}
+  .dp.dp-fill .dp-num.dp-n-burn,.dp.dp-fill .dp-num.dp-n-sh{font-size:15px}
+  .dp.dp-fill .dp-num.dp-n-sm{font-size:14px}
+  .dp.dp-fill .dp-num.dp-n-pas i{font-size:10px;padding:2px 6px}
+  .dp.dp-fill .dp-cut{height:74px;margin-top:-37px}
+  .dp.dp-fill .dp-cav{flex-basis:45px;height:60px;border-radius:8px}
+  .dp.dp-fill .dp-cph{font-size:24px}
+  .dp.dp-fill .dp-cl{gap:6px;font-size:12px}
+  .dp.dp-fill .dp-cc{font-size:11px}
+  .dp.dp-fill .dp-cs{font-size:21px}
+  .dp.dp-fill .dp-ban{gap:3px;padding:10px 0 12px}
+  .dp.dp-fill .dp-bs{font-size:12px}
+  .dp.dp-fill .dp-bt{font-size:24px}
+  .dp.dp-fill .dp-bu{font-size:12px}
+}
+
+/* 결과의 세 꼴. 채우지 않는 휴대폰은 431px 안에 맞추고, 큰 휴대폰은 초상과 도장을 키운다. */
+@container dp (max-width:719px) and (min-height:560px){
+  .dp.dp-fill .dp-rcontent{gap:16px}
+  .dp.dp-fill.dp-hasctx .dp-rcontent{row-gap:8px}
+  .dp.dp-fill .dp-rhero{gap:14px}
+  .dp.dp-fill .dp-rw{font-size:48px}
+  .dp.dp-fill .dp-rportrait:not(.dp-mini){width:114px}
+  .dp.dp-fill .dp-mvpdamage{font-size:32px}
+}
+@container dp (min-width:720px){
+  .dp .dp-res{padding:24px;gap:12px}
+  .dp .dp-rcontent{grid-template-columns:minmax(0,.85fr) minmax(0,1.65fr);gap:28px}
+  .dp .dp-rw{font-size:64px}
+  .dp .dp-rportrait:not(.dp-mini){width:144px}
+  .dp .dp-mvp{flex-direction:column;gap:8px}
+  .dp .dp-mvpinfo{align-items:center;max-width:100%;text-align:center}
+  .dp .dp-mvpdamage{font-size:32px}
+  .dp .dp-rs{font-size:44px}
+  .dp .dp-rdl b{font-size:30px}
+  .dp .dp-rating{font-size:12px}
+  .dp .dp-rr{min-height:142px;padding:10px;gap:8px}
+  .dp .dp-rr2{font-size:24px;line-height:28px}
+  .dp .dp-rr1{font-size:12px}
+  .dp .dp-rrmeta{font-size:10px;line-height:14px}
+  .dp .dp-rb .dp-btn{min-height:44px;font-size:14px}
+}
+/* 높이 기준 칸이 있는 채우기 꼴과, 높이가 낮은 화면의 비채우기 꼴 모두 같은 결과 배치. */
+@container dp (min-width:720px) and (max-height:560px){
+  .dp.dp-fill .dp-res{padding:10px 16px;gap:8px}
+  .dp.dp-fill .dp-rcontent{gap:20px}
+  .dp.dp-fill .dp-rw{font-size:38px}
+  .dp.dp-fill .dp-mvp{flex-direction:row;gap:10px}
+  .dp.dp-fill .dp-rportrait:not(.dp-mini){width:84px}
+  .dp.dp-fill .dp-mvpinfo{align-items:flex-start;text-align:left}
+  .dp.dp-fill .dp-mvpname{font-size:15px;max-width:110px}
+  .dp.dp-fill .dp-mvpdamage{font-size:22px}
+  .dp.dp-fill .dp-rs{font-size:32px}
+  .dp.dp-fill .dp-rdl b{font-size:24px}
+  .dp.dp-fill .dp-rr{min-height:104px;padding:6px;gap:6px}
+  .dp.dp-fill .dp-rr2{font-size:18px;line-height:20px}
+  .dp.dp-fill .dp-rr1{font-size:10px}
+  .dp.dp-fill .dp-rb .dp-btn{min-height:36px}
+}
+@media (min-width:720px) and (max-height:560px){
+  .dp:not(.dp-fill) .dp-res{padding:10px 16px;gap:8px}
+  .dp:not(.dp-fill) .dp-rcontent{gap:20px}
+  .dp:not(.dp-fill) .dp-rw{font-size:38px}
+  .dp:not(.dp-fill) .dp-mvp{flex-direction:row;gap:10px}
+  .dp:not(.dp-fill) .dp-rportrait:not(.dp-mini){width:84px}
+  .dp:not(.dp-fill) .dp-mvpinfo{align-items:flex-start;text-align:left}
+  .dp:not(.dp-fill) .dp-mvpname{font-size:15px;max-width:110px}
+  .dp:not(.dp-fill) .dp-mvpdamage{font-size:22px}
+  .dp:not(.dp-fill) .dp-rs{font-size:32px}
+  .dp:not(.dp-fill) .dp-rdl b{font-size:24px}
+  .dp:not(.dp-fill) .dp-rr{min-height:104px;padding:6px;gap:6px}
+  .dp:not(.dp-fill) .dp-rr2{font-size:18px;line-height:20px}
+  .dp:not(.dp-fill) .dp-rr1{font-size:10px}
+  .dp:not(.dp-fill) .dp-rb .dp-btn{min-height:36px}
+}
+
+/* 움직임 줄이기: 이동과 흔들림, 새 연출(돌진, 넉백, 고리, 줌, 뒤집기, 빛 훑기)을 모두 빼고 숫자와 막대, 번쩍임만 */
+@media (prefers-reduced-motion:reduce){
+  .dp .dp-cm.dp-lunge,.dp .dp-cm.dp-lungec,.dp .dp-cm.dp-lunge2,.dp .dp-cm.dp-shot,.dp .dp-cm.dp-riposte,.dp .dp-cm.dp-chase,.dp .dp-cm.dp-ko,.dp .dp-cm.dp-stun,.dp .dp-cm.dp-cast,.dp .dp-cm.dp-boost{animation:none}
+  .dp .dp-fr.dp-hit1,.dp .dp-fr.dp-hit,.dp .dp-fr.dp-hit3,.dp .dp-fr.dp-hitc,.dp .dp-fr.dp-sting,.dp .dp-fr.dp-dodge,.dp .dp-fr.dp-block{animation:none}
+  .dp .dp-fr.dp-hit1 .dp-hp,.dp .dp-fr.dp-hit .dp-hp,.dp .dp-fr.dp-hit3 .dp-hp,.dp .dp-fr.dp-hitc .dp-hp,.dp .dp-cm.dp-ko .dp-hp{animation:none}
+  .dp .dp-rows.dp-quake,.dp .dp-rows.dp-zoom,.dp .dp-rows.dp-zoom2,.dp .dp-fx.dp-pop,.dp .dp-sl.dp-go.dp-s-slash,.dp .dp-sl.dp-go.dp-s-pierce{animation:none}
+  .dp .dp-set.dp-deal .dp-card,.dp .dp-set.dp-deal .dp-bk,.dp .dp-set.dp-deal4 .dp-card,.dp .dp-set.dp-cheer .dp-card:not(.dp-down),.dp .dp-set.dp-sink .dp-card{animation:none}
+  .dp .dp-beam.dp-b-bolt.dp-go>i,.dp .dp-beam.dp-b-bolt.dp-go>b,.dp .dp-beam.dp-b-trail.dp-go>i,.dp .dp-shock.dp-go,.dp .dp-dim.dp-go,.dp .dp-vs.dp-go{animation:none}
+  .dp .dp-rg.dp-go,.dp .dp-rg.dp-r-big.dp-go,.dp .dp-rg.dp-r-sh.dp-go,.dp .dp-rg.dp-r-block.dp-go,.dp .dp-sp.dp-go,.dp .dp-ck.dp-go{animation:none}
+  .dp .dp-sw.dp-w-turn.dp-go,.dp .dp-sw.dp-w-buff.dp-go,.dp .dp-sw.dp-w-heal.dp-go,.dp .dp-sw.dp-w-hex.dp-go{animation:none}
+  .dp .dp-cut.dp-go .dp-cv,.dp .dp-cut.dp-go .dp-cav,.dp .dp-cut.dp-go .dp-cs{animation:none}
+  .dp .dp-res.dp-on .dp-rw,.dp .dp-res.dp-on .dp-mvp,.dp .dp-res.dp-on .dp-rseal::before,.dp .dp-res.dp-on .dp-rs,.dp .dp-res.dp-on .dp-rdl,.dp .dp-res.dp-on .dp-rr,.dp .dp-res.dp-on .dp-rb{animation:none}
+  .dp .dp-cm{transition:filter calc(480ms * var(--dp-spd))}
+  .dp .dp-card.dp-act .dp-cm{transform:none}
+  .dp .dp-card.dp-down .dp-cm{transform:none}
+  .dp .dp-num.dp-go,.dp .dp-num.dp-n-crit.dp-go{animation-name:dp-numfade}
+  .dp .dp-cut.dp-go,.dp .dp-rd.dp-go{animation-name:dp-fade}
+  .dp .dp-ban.dp-go{animation-name:dp-fade}
+}
+
+.dp.dp-fill .dp-ltitle .dp-btn,.dp.dp-fill .dp-ltabs .dp-btn{min-height:40px}
+@container dp (min-width:720px){
+  .dp .dp-ctl .dp-btn{min-width:0;padding:0 6px;gap:6px;font-size:13px}
+  .dp .dp-lhead{padding:10px 16px}
+  .dp .dp-ltitle,.dp .dp-ltabs{max-width:720px;margin-left:auto;margin-right:auto}
+  .dp .dp-lscroll{padding:12px 16px}
+  .dp .dp-lline{grid-template-columns:10px minmax(0,128px) minmax(0,1fr)}
+  .dp .dp-lahead>.dp-lname{max-width:160px}
+}
+@container dp (min-width:720px) and (max-height:560px){
+  /* 낮은 가로 꼴은 제목과 소대 탭과 단추를 한 줄에 둔다. */
+  .dp.dp-fill .dp-lhead{display:flex;align-items:center;gap:8px;padding:6px 12px}
+  .dp.dp-fill .dp-ltitle{display:contents}
+  .dp.dp-fill .dp-ltitle>b{flex:none;order:0}
+  .dp.dp-fill .dp-ltabs{flex:1 1 auto;order:1;max-width:none;margin:0}
+  .dp.dp-fill .dp-ltitle .dp-btn{order:2}
+  .dp.dp-fill .dp-ltitle .dp-btn,.dp.dp-fill .dp-ltabs .dp-btn{min-height:36px}
+  .dp.dp-fill .dp-lroundhead{min-height:40px}
+  .dp.dp-fill .dp-lscroll{padding:8px 12px}
+  .dp.dp-fill .dp-lctx>.dp-ctx{flex:0 1 auto;max-width:25%;order:0}
+  .dp.dp-fill .dp-lctx .dp-ctitle{display:none}
+  .dp.dp-fill.dp-hasctx .dp-rcontent{row-gap:6px}
+  .dp.dp-fill .dp-ctx{line-height:18px}
+  .dp.dp-fill .dp-ctitle{font-size:11px}
+}
+@media (min-width:720px) and (max-height:560px){
+  .dp:not(.dp-fill) .dp-lhead{display:flex;align-items:center;gap:8px;padding:6px 12px}
+  .dp:not(.dp-fill) .dp-ltitle{display:contents}
+  .dp:not(.dp-fill) .dp-ltitle>b{flex:none;order:0}
+  .dp:not(.dp-fill) .dp-ltabs{flex:1 1 auto;order:1;max-width:none;margin:0}
+  .dp:not(.dp-fill) .dp-ltitle .dp-btn{order:2}
+  .dp:not(.dp-fill) .dp-ltitle .dp-btn,.dp:not(.dp-fill) .dp-ltabs .dp-btn{min-height:36px}
+  .dp:not(.dp-fill) .dp-lctx>.dp-ctx{flex:0 1 auto;max-width:25%;order:0}
+  .dp:not(.dp-fill) .dp-lctx .dp-ctitle{display:none}
+  .dp:not(.dp-fill).dp-hasctx .dp-rcontent{row-gap:6px}
+  .dp:not(.dp-fill) .dp-ctx{line-height:18px}
+  .dp:not(.dp-fill) .dp-ctitle{font-size:11px}
+}
+@container dp (max-height:420px){
+  .dp .dp-ctx{line-height:18px}
+  .dp .dp-ctitle{font-size:11px}
+}

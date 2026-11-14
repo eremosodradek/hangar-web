@@ -1,0 +1,282 @@
+/* duel-lobby.css  정예 대전 탭 부품의 모양(2026-11-13 ART 세션).
+   쓰는 법: duel-lobby.js 와 함께 부른다.
+   이유: 사용자 「지금은 너무 글자만 잔뜩 있음」. 큰 숫자 하나, 초상이 보이는 카드, 승패 색이 먼저 읽히게 한다. 모양은 기존 게임 화면 디자인을 따른다(편성 부품 duel-form.css 와 같은 기준).
+   기존 디자인 기준: 평평한 패널과 1px 테두리, 둥근 모서리(패널 10px, 카드 8px, 단추 6px, 표시 4px), 단추는 button.act 꼴(테두리 단추).
+   규칙: 모든 선택자는 .dlb 로 시작하고 안쪽 이름과 keyframes 이름은 dlb- 로 시작한다. 한 줄에 규칙 하나.
+   색과 글꼴은 게임 변수(--bg --panel --panel2 --line --fg --dim --cyan --mag --amber --red --green --mono)를 따르고, 변수가 없는 곳(미리 보기)에서는 같은 값으로 그린다.
+   폭은 화면이 아니라 부품 폭으로 가른다(container). 기본값은 휴대폰 꼴이고 부품 폭 720px 부터 PC 꼴(후보 셋을 나란히), 1200px 부터 후보 카드 안이 다시 가로 꼴.
+   색: 하늘색 = 내 편, 분홍 = 상대, 호박색 = 강조와 남은 횟수, 초록 = 승리와 유리, 빨강 = 패배와 불리와 막힘.
+   원칙 2-9d: 움직임(keyframes 와 transition)은 transform 과 opacity 로만, 끝없이 도는 애니메이션 없음. */
+.dlb{--dlb-bg:var(--bg,#0b0e14);--dlb-panel:var(--panel,#121722);--dlb-panel2:var(--panel2,#181f2e);--dlb-line:var(--line,#243047);--dlb-fg:var(--fg,#dfe6f3);--dlb-dim:var(--dim,#8b97ad);--dlb-cyan:var(--cyan,#4fd8ff);--dlb-mag:var(--mag,#ff5fb0);--dlb-amber:var(--amber,#ffc857);--dlb-red:var(--red,#ff6b6b);--dlb-green:var(--green,#5fe0a0);--dlb-shade:rgba(6,8,14,.82);--dlb-num:var(--mono,"SF Mono",Menlo,Consolas,monospace);--dlb-kr:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;--dlb-n:5;container-type:inline-size;container-name:dlb;display:block;position:relative;min-width:0;color:var(--dlb-fg);font:13px/1.4 var(--dlb-kr);font-variant-numeric:tabular-nums;text-align:left;-webkit-tap-highlight-color:transparent}
+.dlb *,.dlb *::before,.dlb *::after{box-sizing:border-box}
+.dlb i,.dlb em{font-style:normal}
+.dlb h3,.dlb p{margin:0}
+.dlb .dlb-off.dlb-off{display:none}
+.dlb .dlb-in{display:flex;flex-direction:column;gap:10px;min-width:0}
+.dlb .dlb-p{position:relative;min-width:0;padding:10px;background:var(--dlb-panel);border:1px solid var(--dlb-line);border-radius:10px}
+.dlb .dlb-dim{color:var(--dlb-dim);font-size:12px;white-space:nowrap}
+.dlb .dlb-h{display:flex;align-items:center;gap:8px;min-width:0;min-height:40px}
+.dlb .dlb-h h3{flex:none;font-size:14px;font-weight:700}
+.dlb .dlb-h .dlb-btn{margin-left:auto}
+.dlb .dlb-empty{padding:8px 0 2px;color:var(--dlb-dim);font-size:12px}
+.dlb .dlb-note{padding:6px 10px;border:1px solid var(--dlb-amber);border-radius:6px;color:var(--dlb-amber);background:rgba(255,200,87,.08);font-size:12px;font-weight:600}
+.dlb .dlb-note.dlb-bad{border-color:var(--dlb-red);color:var(--dlb-red);background:rgba(255,107,107,.08)}
+
+/* 단추. 게임 button.act 꼴(테두리 단추). 주 단추는 하늘색 테두리와 옅은 하늘색 바탕 */
+.dlb .dlb-btn{-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:0;min-width:0;min-height:40px;padding:4px 12px;border:1px solid var(--dlb-line);border-radius:6px;background:var(--dlb-panel2);color:var(--dlb-fg);font:13px/1.2 var(--dlb-kr);white-space:nowrap;cursor:pointer;touch-action:manipulation;transition:transform .1s}
+.dlb .dlb-btn:hover{border-color:var(--dlb-cyan)}
+.dlb .dlb-btn:active{transform:scale(.97)}
+.dlb .dlb-btn:focus{outline:0}
+.dlb .dlb-btn:focus-visible{border-color:var(--dlb-cyan);box-shadow:0 0 0 1px var(--dlb-cyan)}
+.dlb .dlb-btn:disabled{opacity:.45;cursor:not-allowed}
+.dlb .dlb-btn:disabled:hover{border-color:var(--dlb-line)}
+.dlb .dlb-btn.dlb-main{border-color:var(--dlb-cyan);color:var(--dlb-cyan);background:rgba(79,216,255,.14);font-weight:600}
+.dlb .dlb-btn.dlb-main:disabled:hover{border-color:var(--dlb-cyan)}
+.dlb .dlb-btn.dlb-mo{color:var(--dlb-dim)}
+.dlb .dlb-btn.dlb-mo::after{content:"";flex:none;width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
+.dlb .dlb-btn.dlb-mo[aria-expanded="true"]::after{transform:translateY(2px) rotate(225deg)}
+.dlb .dlb-btn.dlb-re b{font:700 12px/1 var(--dlb-num);color:var(--dlb-amber)}
+
+.dlb .dlb-wait{display:block;margin:2px 0 6px;text-align:right;color:var(--dlb-dim);font-size:11px;overflow-wrap:anywhere}
+
+/* 꼬리표(표시), 점 줄, 승수 띠 */
+.dlb .dlb-tag{flex:none;display:inline-block;padding:0 6px;border-radius:4px;font-size:11px;font-weight:700;line-height:18px;white-space:nowrap;color:var(--dlb-dim);background:rgba(255,255,255,.07)}
+.dlb .dlb-tag.dlb-t-me{color:var(--dlb-cyan);background:rgba(79,216,255,.14)}
+.dlb .dlb-tag.dlb-t-op{color:var(--dlb-mag);background:rgba(255,95,176,.14)}
+.dlb .dlb-tag.dlb-t-am{color:var(--dlb-amber);background:rgba(255,200,87,.14)}
+.dlb .dlb-dots{flex:0 1 auto;min-width:0;flex-wrap:wrap;display:inline-flex;align-items:center;gap:4px}
+.dlb .dlb-dots i{flex:none;width:9px;height:9px;border:1px solid var(--dlb-line);border-radius:50%}
+.dlb .dlb-dots i.dlb-on{border-color:var(--dlb-amber);background:var(--dlb-amber)}
+.dlb .dlb-pips{flex:none;display:inline-flex;gap:4px}
+.dlb .dlb-pips i{width:22px;height:6px;border-radius:3px;background:var(--dlb-line)}
+.dlb .dlb-pips i.dlb-w,.dlb .dlb-strip i.dlb-w{background:var(--dlb-green)}
+.dlb .dlb-pips i.dlb-l,.dlb .dlb-strip i.dlb-l{background:var(--dlb-red)}
+
+/* 1. 내 현황 판: 큰 점수 하나가 화면에서 가장 큰 글자 */
+.dlb .dlb-me{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"sn" "sc" "wl" "day";gap:10px;overflow:hidden;padding:12px}
+.dlb .dlb-bg{position:absolute;top:0;right:0;bottom:0;width:48%;opacity:.26;pointer-events:none}
+.dlb .dlb-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--dlb-panel),transparent 75%)}
+.dlb .dlb-bg.dlb-noart{display:none}
+.dlb .dlb-bg img,.dlb .dlb-bg .art{display:block;width:100%;height:100%;margin:0;border:0;border-radius:0;aspect-ratio:auto;object-fit:cover;object-position:50% 12%}
+.dlb .dlb-bg .art>*:not(img){display:none}
+.dlb .dlb-sn{grid-area:sn;position:relative;display:flex;align-items:center;gap:8px;min-width:0}
+.dlb .dlb-bar{flex:1 1 auto;min-width:40px;height:4px;overflow:hidden;border-radius:2px;background:var(--dlb-line)}
+.dlb .dlb-bar i{display:block;height:100%;border-radius:2px;background:var(--dlb-cyan);transform-origin:0 50%;transform:scaleX(var(--dlb-f,0))}
+.dlb .dlb-sc{grid-area:sc;position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;min-width:0}
+.dlb .dlb-sc small{flex:1 0 100%;font-size:11px;color:var(--dlb-dim)}
+.dlb .dlb-big{font:700 52px/1.05 var(--dlb-num);letter-spacing:-.03em;white-space:nowrap}
+.dlb .dlb-big i{font-size:.5em;color:var(--dlb-dim)}
+.dlb .dlb-big.dlb-none{color:var(--dlb-dim);font-weight:400}
+.dlb .dlb-rank{flex:none;padding:5px 10px;border:1px solid var(--dlb-amber);border-radius:6px;font:700 18px/1 var(--dlb-kr);color:var(--dlb-amber);background:rgba(255,200,87,.1);white-space:nowrap}
+.dlb .dlb-rank.dlb-none{border-color:var(--dlb-line);color:var(--dlb-dim);background:none}
+.dlb .dlb-wl{grid-area:wl;position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.dlb .dlb-wt{display:flex;align-items:baseline;gap:4px;min-width:0;padding:7px 8px;background:var(--dlb-panel2);border:1px solid var(--dlb-line);border-radius:8px}
+.dlb .dlb-wt .dlb-tag{align-self:center;margin-right:auto}
+.dlb .dlb-wt b{font:700 20px/1 var(--dlb-num)}
+.dlb .dlb-wt b.dlb-w{color:var(--dlb-green)}
+.dlb .dlb-wt b.dlb-l{margin-left:4px;color:var(--dlb-red)}
+.dlb .dlb-wt small{font-size:11px;color:var(--dlb-dim)}
+.dlb .dlb-day{grid-area:day;position:relative;display:flex;align-items:center;gap:8px;min-width:0}
+.dlb .dlb-day small{font-size:12px;color:var(--dlb-dim)}
+.dlb .dlb-day .dlb-dots{gap:5px}
+.dlb .dlb-day .dlb-dots i{width:13px;height:13px}
+.dlb .dlb-day b{font:700 15px/1 var(--dlb-num);color:var(--dlb-amber)}
+.dlb .dlb-day.dlb-zero b{color:var(--dlb-red)}
+.dlb .dlb-day .dlb-fwait{margin-left:auto;min-width:0;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 2. 3. 띠: 진행 중인 수동 대전(호박색), 방금 결과(승리 초록, 패배 빨강) */
+.dlb .dlb-band{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0;padding:8px 10px;background:rgba(255,200,87,.07);border:1px solid var(--dlb-amber);border-left-width:4px;border-radius:10px}
+.dlb .dlb-bl{flex:1 0 100%;font-size:11px;font-weight:700;color:var(--dlb-amber)}
+.dlb .dlb-bn{flex:0 1 auto;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dlb .dlb-bs{flex:none;font:700 16px/1 var(--dlb-num);white-space:nowrap}
+.dlb .dlb-band .dlb-btn{margin-left:auto}
+.dlb .dlb-res.dlb-won{border-color:var(--dlb-green);background:rgba(95,224,160,.08)}
+.dlb .dlb-res.dlb-lost{border-color:var(--dlb-red);background:rgba(255,107,107,.08)}
+.dlb .dlb-bw{flex:none;font-size:20px;line-height:1.1}
+.dlb .dlb-res.dlb-won .dlb-bw{color:var(--dlb-green)}
+.dlb .dlb-res.dlb-lost .dlb-bw{color:var(--dlb-red)}
+.dlb .dlb-bd,.dlb .dlb-rd{flex:none;font:700 15px/1 var(--dlb-num);color:var(--dlb-dim);white-space:nowrap}
+.dlb .dlb-bd.dlb-pos,.dlb .dlb-rd.dlb-pos{color:var(--dlb-green)}
+.dlb .dlb-bd.dlb-neg,.dlb .dlb-rd.dlb-neg{color:var(--dlb-red)}
+
+/* 소녀 카드. 게임의 소녀 그림 칸과 같은 꼴: 3대4, 둥근 모서리, 1px 테두리, 왼쪽 위 등급, 오른쪽 위 클래스, 아래 이름 */
+.dlb .dlb-card{position:relative;min-width:0;outline:0;--dlb-qb:#2a3446;--dlb-qc:#aab4c8}
+.dlb .dlb-card.dlb-q-B{--dlb-qb:#1c3d4a;--dlb-qc:var(--dlb-cyan)}
+.dlb .dlb-card.dlb-q-A{--dlb-qb:#3d1c4a;--dlb-qc:var(--dlb-mag)}
+.dlb .dlb-card.dlb-q-S{--dlb-qb:#4a3a1c;--dlb-qc:var(--dlb-amber)}
+.dlb .dlb-card.dlb-q-H{--dlb-qb:#4a3a1c;--dlb-qc:#221600}
+.dlb .dlb-fr{position:relative;aspect-ratio:3/4;overflow:hidden;background:radial-gradient(circle at 30% 25%,#1f2b40,#0f141f 70%);border:1px solid var(--dlb-line);border-radius:8px}
+.dlb .dlb-card.dlb-foe .dlb-fr{border-color:rgba(255,95,176,.4)}
+.dlb .dlb-card[data-dlb-g]{cursor:pointer}
+.dlb .dlb-card:focus-visible .dlb-fr{border-color:var(--dlb-cyan);box-shadow:0 0 0 1px var(--dlb-cyan)}
+.dlb .dlb-card.dlb-pick .dlb-fr{border-color:var(--dlb-amber);box-shadow:0 0 0 1px var(--dlb-amber)}
+.dlb .dlb-ph{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;font-weight:700;color:rgba(255,255,255,.2)}
+.dlb .dlb-art{position:absolute;inset:0}
+.dlb .dlb-art.dlb-noart{display:none}
+.dlb .dlb-art img{pointer-events:none;-webkit-user-drag:none}
+.dlb .dlb-art .dlb-im,.dlb .dlb-art .art img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 10%}
+/* 게임 그림 꼴(div.art 안의 img)이 카드 안에서 꽉 차게. 겹쳐 그리는 띠는 숨기고 그림이 없으면 이름 첫 글자 판이 보인다 */
+.dlb .dlb-art .art{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;margin:0;border:0;border-radius:0;background:none}
+.dlb .dlb-art .art>*:not(img){display:none}
+.dlb .dlb-art .art.fb{display:none}
+.dlb .dlb-rar{position:absolute;left:3px;top:3px;z-index:3;padding:0 4px;border-radius:4px;font-size:10px;font-weight:700;line-height:14px;color:var(--dlb-qc);background:var(--dlb-qb)}
+.dlb .dlb-rar:empty{display:none}
+.dlb .dlb-card.dlb-q-H .dlb-rar{background:linear-gradient(135deg,#ffe08a,#e0a020)}
+.dlb .dlb-cls{position:absolute;right:3px;top:3px;z-index:3;width:16px;height:16px;display:grid;place-items:center;border-radius:4px;font-size:9px;font-weight:700;line-height:1;color:var(--dlb-cyan);background:var(--dlb-shade)}
+.dlb .dlb-cls svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.dlb .dlb-cls svg .a{fill:var(--dlb-mag);stroke:none}
+.dlb .dlb-cls svg .g{fill:var(--dlb-amber);stroke:none}
+.dlb .dlb-nm{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:1px 2px 2px;font-size:10px;line-height:1.25;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--dlb-shade)}
+/* 숙련 단계 작은 표시(sk.lv 가 첫 단계를 넘었을 때만 글이 든다). 등급 표시 아래. 격납고 스킬 부품의 작은 표시(.dsk-chip)와 같은 꼴이고 세 대전 부품(dlb-prof df-prof dp-prof)이 같은 값을 쓴다 */
+.dlb .dlb-prof{position:absolute;left:3px;top:19px;z-index:3;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:22px;height:14px;padding:0 4px;border-radius:4px;color:var(--dlb-amber);background:var(--dlb-shade);box-shadow:inset 0 0 0 1px rgba(255,200,87,.4);font:700 10px/14px var(--dlb-num);white-space:nowrap}
+.dlb .dlb-prof::before{content:"";flex:none;width:5px;height:5px;border-radius:1px;background:currentColor;transform:rotate(45deg)}
+.dlb .dlb-prof:empty{display:none}
+/* 칸 수 막대(소녀가 차지하는 칸)와 스킬 잠김 자물쇠 */
+/* 칸 수: 게임 함교 정예 칸의 표기(.elite-cost)와 같은 값. 어두운 칩 위 하늘색 세로 막대 */
+.dlb .dlb-sl{position:absolute;left:3px;bottom:19px;z-index:3;display:inline-flex;gap:2px;padding:2px 3px;border-radius:3px;background:rgba(6,8,14,.75)}
+.dlb .dlb-sl:empty{display:none}
+.dlb .dlb-sl i{display:block;width:4px;height:9px;border-radius:1px;background:var(--dlb-cyan)}
+.dlb .dlb-lock{position:absolute;right:3px;bottom:18px;z-index:3;display:none;width:14px;height:14px;place-items:center;border-radius:4px;color:var(--dlb-fg);background:var(--dlb-shade)}
+.dlb .dlb-lock svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.dlb .dlb-card.dlb-locked .dlb-lock{display:grid}
+/* 상성 표시(rules.vs 가 있을 때만 켜진다). 세모 방향 = 그 카드가 유리(위)한지 불리(아래)한지, 색 = 나에게 좋음(초록) 나쁨(빨강) */
+.dlb .dlb-mk{position:absolute;right:3px;top:21px;z-index:3;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.dlb .dlb-up,.dlb .dlb-dn{display:none;align-items:center;gap:2px;padding:0 3px;border-radius:3px;font:700 9px/12px var(--dlb-num);background:var(--dlb-shade)}
+.dlb .dlb-up::before{content:"";width:0;height:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-bottom:5px solid currentColor}
+.dlb .dlb-dn::before{content:"";width:0;height:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:5px solid currentColor}
+.dlb .dlb-card.dlb-hasup .dlb-up{display:flex;color:var(--dlb-green)}
+.dlb .dlb-card.dlb-hasdn .dlb-dn{display:flex;color:var(--dlb-red)}
+/* 얼굴만 보이는 작은 초상(후보 카드의 정예 줄) */
+.dlb .dlb-card.dlb-mini .dlb-fr{aspect-ratio:1/1;border-radius:6px}
+.dlb .dlb-card.dlb-mini .dlb-ph{font-size:12px}
+
+/* 4. 상대 후보: 후보마다 카드 하나. 휴대폰은 낮은 가로 카드를 세로로 쌓는다 */
+.dlb .dlb-cl{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.dlb .dlb-cand{position:relative;display:grid;grid-template-columns:112px minmax(0,1fr);gap:10px;min-width:0;padding:8px;background:var(--dlb-panel);border:1px solid var(--dlb-line);border-radius:10px;cursor:pointer}
+.dlb .dlb-cand.dlb-open{border-color:var(--dlb-mag)}
+.dlb .dlb-face{min-width:0}
+.dlb .dlb-face .dlb-nm{font-size:11px}
+.dlb .dlb-cb{display:flex;flex-direction:column;gap:3px;min-width:0}
+.dlb .dlb-ct{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.dlb .dlb-cn{min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dlb .dlb-cr{display:flex;align-items:baseline;gap:6px}
+.dlb .dlb-cr small{font-size:10px;color:var(--dlb-dim)}
+.dlb .dlb-cr b{font:700 26px/1 var(--dlb-num);letter-spacing:-.02em}
+.dlb .dlb-pw{display:flex;flex-direction:column;gap:3px}
+.dlb .dlb-pr{display:flex;align-items:center;gap:6px;min-width:0}
+.dlb .dlb-pr small{flex:0 0 50px;font-size:10px;color:var(--dlb-dim);white-space:nowrap}
+.dlb .dlb-pb{flex:1 1 auto;min-width:0;height:6px;overflow:hidden;border-radius:3px;background:var(--dlb-line)}
+.dlb .dlb-pb i{display:block;height:100%;border-radius:3px;background:var(--dlb-mag);transform-origin:0 50%;transform:scaleX(var(--dlb-f,0))}
+.dlb .dlb-pr.dlb-mine .dlb-pb i{background:var(--dlb-cyan)}
+.dlb .dlb-pr b{flex:0 0 auto;min-width:48px;font:600 11px/1 var(--dlb-num);text-align:right}
+.dlb .dlb-st{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;align-items:center;padding-right:44px;min-height:40px}
+.dlb .dlb-st .dlb-btn.dlb-mo{position:absolute;right:0;top:0;width:40px;height:40px;padding:0;border-color:transparent;background:transparent;font-size:10px}
+.dlb .dlb-st .dlb-mo span{display:none}
+.dlb .dlb-plus{font:600 11px/1 var(--dlb-num);color:var(--dlb-dim);text-align:center;white-space:nowrap}
+.dlb .dlb-cw{font-size:11px;font-weight:600;line-height:1.2;color:var(--dlb-red)}
+.dlb .dlb-cw:empty{display:none}
+.dlb .dlb-cf{display:flex;gap:6px;margin-top:auto}
+.dlb .dlb-cf .dlb-btn{flex:1 1 0}
+.dlb .dlb-cf .dlb-btn.dlb-main{flex:1 1 0;min-height:40px;padding:4px 2px;font-size:13px}
+.dlb .dlb-fight b{font-weight:600}
+.dlb .dlb-btn.dlb-manual,.dlb .dlb-btn.dlb-manual:disabled:hover{border-color:var(--dlb-amber);color:var(--dlb-amber);background:rgba(255,200,87,.14)}
+/* 펼친 칸: 상대 방어 배치와 공개 정예. 후보 카드 바로 아래에 붙는다 */
+.dlb .dlb-det{min-width:0;margin-top:-4px;padding:10px;background:var(--dlb-bg);border:1px solid rgba(255,95,176,.45);border-radius:10px}
+.dlb .dlb-dh{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}
+.dlb .dlb-sqs{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+.dlb .dlb-sq{display:grid;grid-template-columns:62px minmax(0,1fr);gap:6px;align-items:center;min-width:0}
+.dlb .dlb-sqh{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.dlb .dlb-sqh b{font-size:12px}
+.dlb .dlb-tac{max-width:100%;padding:2px 5px;font-size:10px;font-weight:600;line-height:1.2;white-space:normal}
+.dlb .dlb-line{display:grid;grid-template-columns:repeat(var(--dlb-n),minmax(0,1fr));gap:4px;min-width:0}
+/* 누른 카드의 정보 줄. 높이를 잡아 두어 글이 바뀌어도 아래가 밀리지 않는다 */
+.dlb .dlb-info{display:flex;flex-wrap:wrap;align-items:center;align-content:center;gap:3px 5px;min-height:44px;margin-top:8px;padding:4px 8px;border:1px solid var(--dlb-line);border-radius:8px;font-size:11px}
+.dlb .dlb-hint{color:var(--dlb-dim);font-size:12px}
+.dlb .dlb-info.dlb-has .dlb-hint{display:none}
+.dlb .dlb-iname{display:none;font-size:13px}
+.dlb .dlb-info.dlb-has .dlb-iname{display:inline}
+.dlb .dlb-chip{padding:0 5px;border-radius:4px;line-height:17px;white-space:nowrap;background:rgba(255,255,255,.07)}
+.dlb .dlb-chip.dlb-c-cls{color:var(--dlb-cyan)}
+.dlb .dlb-chip.dlb-c-up{color:var(--dlb-green)}
+.dlb .dlb-chip.dlb-c-dn{color:var(--dlb-red)}
+.dlb .dlb-chip.dlb-c-ska,.dlb .dlb-chip.dlb-c-skp{color:var(--dlb-dim)}
+.dlb .dlb-chip.dlb-c-ske{color:var(--dlb-amber)}
+
+/* 5. 내 방어 배치: 소대마다 작은 카드 줄과 작전 꼬리표 */
+.dlb .dlb-def .dlb-h{margin:-4px 0 6px}
+.dlb .dlb-def .dlb-card.dlb-own .dlb-fr{border-color:rgba(79,216,255,.35)}
+
+/* 6. 대전 기록: 줄마다 왼쪽 승패 띠 */
+.dlb .dlb-rec .dlb-h{margin:-4px 0 4px}
+.dlb .dlb-strip{display:inline-flex;gap:3px;margin-left:auto}
+.dlb .dlb-strip i{width:7px;height:16px;border-radius:2px;background:var(--dlb-line)}
+.dlb .dlb-rl{display:flex;flex-direction:column;gap:5px}
+.dlb .dlb-row{-webkit-appearance:none;appearance:none;display:grid;grid-template-columns:32px auto minmax(0,1fr) auto 12px;grid-template-areas:"wl side name delta go" "wl side at delta go";align-items:center;column-gap:8px;width:100%;min-height:46px;margin:0;padding:0 10px 0 0;overflow:hidden;border:1px solid var(--dlb-line);border-radius:8px;background:var(--dlb-panel2);color:var(--dlb-fg);font:13px/1.25 var(--dlb-kr);text-align:left;cursor:pointer;touch-action:manipulation}
+.dlb .dlb-row:hover{border-color:var(--dlb-cyan)}
+.dlb .dlb-row:focus{outline:0}
+.dlb .dlb-row:focus-visible{border-color:var(--dlb-cyan);box-shadow:0 0 0 1px var(--dlb-cyan)}
+.dlb .dlb-row:disabled{cursor:default}
+.dlb .dlb-row:disabled:hover{border-color:var(--dlb-line)}
+.dlb .dlb-rl .dlb-row.dlb-more{display:none}
+.dlb .dlb-rl.dlb-all .dlb-row.dlb-more{display:grid}
+.dlb .dlb-rw{grid-area:wl;align-self:stretch;display:grid;place-items:center;font-size:14px;color:var(--dlb-bg);background:var(--dlb-red)}
+.dlb .dlb-row.dlb-won .dlb-rw{background:var(--dlb-green)}
+.dlb .dlb-row .dlb-tag{grid-area:side}
+.dlb .dlb-rn{grid-area:name;align-self:end;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dlb .dlb-ra{grid-area:at;align-self:start;min-width:0;font-size:10px;color:var(--dlb-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dlb .dlb-rd{grid-area:delta}
+.dlb .dlb-go{grid-area:go;width:7px;height:7px;overflow:hidden;border-top:1.5px solid var(--dlb-dim);border-right:1.5px solid var(--dlb-dim);color:transparent;font-size:0;transform:rotate(45deg)}
+.dlb .dlb-row:disabled .dlb-go{visibility:hidden}
+.dlb .dlb-rmore{width:100%;margin-top:6px}
+
+/* 움직임. 새 후보 카드는 뒤집히며 깔리고(다시 뽑기), 펼친 칸은 짧게 내려온다 */
+.dlb .dlb-cand.dlb-new{animation:dlb-flip .46s calc(var(--dlb-k,0) * 80ms) cubic-bezier(.2,.8,.3,1) backwards}
+.dlb .dlb-det.dlb-pop{animation:dlb-pop .2s ease-out}
+@keyframes dlb-flip{from{opacity:0;transform:perspective(700px) rotateY(-82deg) scale(.95)}}
+@keyframes dlb-pop{from{opacity:0;transform:translateY(-8px)}}
+
+/* PC 꼴: 부품 폭 720px 부터. 현황 판은 한 줄, 후보 셋은 나란히(카드 안은 초상이 위), 소대 셋도 나란히 */
+@container dlb (min-width:720px){
+  .dlb .dlb-in{gap:12px}
+  .dlb .dlb-p{padding:12px 16px}
+  .dlb .dlb-me{grid-template-columns:auto minmax(200px,280px);grid-template-areas:"sc sn" "sc day" "wl wl";justify-content:space-between;align-items:center;gap:8px 28px;padding:16px 20px}
+  .dlb .dlb-bg{width:34%}
+  .dlb .dlb-big{font-size:68px}
+  .dlb .dlb-rank{font-size:22px;padding:7px 12px}
+  .dlb .dlb-wl{max-width:560px;gap:10px}
+  .dlb .dlb-wt{padding:10px 12px}
+  .dlb .dlb-wt b{font-size:26px}
+  .dlb .dlb-band{padding:10px 16px;gap:8px 14px}
+  .dlb .dlb-bl{flex:0 0 auto}
+  .dlb .dlb-bw{font-size:24px}
+  .dlb .dlb-pips i{width:34px}
+  .dlb .dlb-cl{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .dlb .dlb-cand{grid-template-columns:minmax(0,1fr);padding:10px}
+  .dlb .dlb-det{grid-column:1 / -1;order:1;margin-top:0;padding:12px 16px}
+  .dlb .dlb-sqs{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 16px}
+  .dlb .dlb-sq{grid-template-columns:minmax(0,1fr);align-content:start}
+  .dlb .dlb-sq.dlb-rest{grid-column:1 / -1}
+  .dlb .dlb-sq.dlb-rest .dlb-line{grid-template-columns:repeat(auto-fill,minmax(64px,78px))}
+  .dlb .dlb-sqh{flex-direction:row;align-items:center;gap:8px}
+  .dlb .dlb-sqh b{font-size:13px}
+  .dlb .dlb-tac{font-size:11px;line-height:18px;padding:0 6px;white-space:nowrap}
+  .dlb .dlb-line{gap:6px}
+  .dlb .dlb-nm{font-size:11px}
+  .dlb .dlb-row{grid-template-columns:36px auto minmax(0,1fr) auto auto auto;grid-template-areas:"wl side name at delta go";min-height:44px;column-gap:12px}
+  .dlb .dlb-rn,.dlb .dlb-ra{align-self:center}
+  .dlb .dlb-ra{font-size:11px}
+  .dlb .dlb-go{width:auto;height:auto;padding:0 8px;border:1px solid var(--dlb-line);border-radius:4px;color:var(--dlb-dim);font-size:11px;line-height:20px;transform:none}
+  .dlb .dlb-rmore{width:auto;min-width:160px}
+}
+@container dlb (min-width:1200px){
+  .dlb .dlb-me{grid-template-columns:auto minmax(0,1fr) minmax(200px,280px);grid-template-areas:"sc wl sn" "sc wl day"}
+  .dlb .dlb-cand{grid-template-columns:clamp(120px,38%,160px) minmax(0,1fr);gap:14px;padding:12px}
+  .dlb .dlb-cn{font-size:15px}
+  .dlb .dlb-cr b{font-size:32px}
+  .dlb .dlb-cb{gap:7px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .dlb .dlb-cand.dlb-new,.dlb .dlb-det.dlb-pop{animation:none}
+  .dlb .dlb-btn,.dlb .dlb-btn.dlb-mo::after{transition:none}
+}

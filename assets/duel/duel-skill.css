@@ -1,0 +1,112 @@
+/* duel-skill.css  스킬과 숙련도 부품의 모양(2026-11-13 ART 세션).
+   쓰는 법: duel-skill.js 와 함께 부른다.
+   이유: 사용자 「스킬은 성장해야 하니까 격납고 소녀 카드에」. 격납고 소녀 카드 안에 들어가니 그 카드의 성장 칸(.grow)과 같은 꼴로 그린다(한 단 어두운 패널, 1px 테두리, 둥근 모서리 8px).
+   기존 디자인 기준: 평평한 패널과 1px 테두리, 둥근 모서리(패널 8px, 칸과 단추 6px, 표시 4px), 단추는 button.act 꼴(테두리 단추), 강조는 호박색.
+   규칙: 모든 선택자는 .dsk 로 시작하고 안쪽 이름과 keyframes 이름은 dsk- 로 시작한다. 한 줄에 규칙 하나.
+   색과 글꼴은 게임 변수(--bg --panel --panel2 --line --fg --dim --cyan --amber --red --mono)를 따르고, 변수가 없는 곳(미리 보기)에서는 같은 값으로 그린다.
+   폭은 화면이 아니라 받은 칸의 폭으로 가른다(container). 기본은 좁은 카드 꼴이고 칸 폭 460px 부터 넓은 꼴. 스킬 둘은 어느 폭에서나 세로로 쌓는다(이름 줄과 설명 줄).
+   색: 호박색 = 숙련 단계와 올릴 수 있음과 강화, 빨강 = 모자람과 거절, 흐림 = 잠김.
+   원칙 2-9d: 움직임(keyframes 와 transition)은 transform 과 opacity 로만, 끝없이 도는 애니메이션 없음. */
+.dsk{--dsk-bg:var(--bg,#0b0e14);--dsk-panel:var(--panel,#121722);--dsk-panel2:var(--panel2,#181f2e);--dsk-line:var(--line,#243047);--dsk-fg:var(--fg,#dfe6f3);--dsk-dim:var(--dim,#8b97ad);--dsk-cyan:var(--cyan,#4fd8ff);--dsk-amber:var(--amber,#ffc857);--dsk-red:var(--red,#ff6b6b);--dsk-shade:rgba(6,8,14,.82);--dsk-num:var(--mono,"SF Mono",Menlo,Consolas,monospace);--dsk-kr:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;box-sizing:border-box;font-variant-numeric:tabular-nums;-webkit-tap-highlight-color:transparent}
+.dsk *,.dsk *::before,.dsk *::after{box-sizing:border-box}
+.dsk i,.dsk em{font-style:normal}
+.dsk p{margin:0}
+/* 숨김. 뒤에 오는 꼴 규칙(display)에 지지 않게 같은 클래스를 두 번 적어 무게를 올린다 */
+.dsk.dsk-off.dsk-off{display:none}
+.dsk .dsk-off.dsk-off{display:none}
+
+/* 접힌 카드의 작은 표시: 마름모와 숙련 단계 숫자. 올릴 수 있으면 밝은 점이 붙는다. 누르는 것이 아니다.
+   대전 카드의 숙련 표시(dlb-prof df-prof dp-prof)와 같은 꼴이다. 값을 바꾸면 그 셋도 같이 바꾼다 */
+.dsk.dsk-chip{display:inline-flex;align-items:center;justify-content:center;align-self:center;gap:3px;flex:none;min-width:22px;height:14px;padding:0 4px;border-radius:4px;color:var(--dsk-amber);background:var(--dsk-shade);box-shadow:inset 0 0 0 1px rgba(255,200,87,.4);font:700 10px/14px var(--dsk-num);white-space:nowrap;vertical-align:middle;pointer-events:none}
+.dsk.dsk-chip::before{content:"";flex:none;width:5px;height:5px;border-radius:1px;background:currentColor;transform:rotate(45deg)}
+.dsk.dsk-chip .dsk-cd{display:none;flex:none;width:6px;height:6px;border-radius:50%;background:#ffe9a8;box-shadow:0 0 0 1px var(--dsk-amber)}
+.dsk.dsk-chip.dsk-up{box-shadow:inset 0 0 0 1px var(--dsk-amber)}
+.dsk.dsk-chip.dsk-up .dsk-cd{display:block}
+.dsk.dsk-chip.dsk-one .dsk-cn{opacity:.6}
+.dsk.dsk-chip.dsk-one::before{opacity:.6}
+
+/* 스킬 판. 격납고 카드의 성장 칸(.grow)과 같은 꼴 */
+.dsk.dsk-panel{container-type:inline-size;container-name:dsk;display:block;min-width:0;color:var(--dsk-fg);font:12px/1.35 var(--dsk-kr);text-align:left}
+.dsk .dsk-in{display:flex;flex-direction:column;gap:7px;min-width:0;padding:8px 10px;background:var(--dsk-panel2);border:1px solid var(--dsk-line);border-radius:8px}
+.dsk .dsk-head{display:flex;align-items:center;gap:6px;min-width:0;min-height:18px}
+.dsk .dsk-title{font-size:12px;font-weight:700;white-space:nowrap}
+.dsk .dsk-lvt{display:inline-flex;align-items:center;gap:3px;flex:none;height:14px;padding:0 4px;border-radius:4px;color:var(--dsk-amber);background:var(--dsk-shade);box-shadow:inset 0 0 0 1px rgba(255,200,87,.4);font:700 10px/14px var(--dsk-num)}
+.dsk .dsk-lvt::before{content:"";flex:none;width:5px;height:5px;border-radius:1px;background:currentColor;transform:rotate(45deg)}
+
+/* 1. 스킬 둘을 세로로 쌓는다(칸 안에 칸을 또 만들지 않고 얇은 선으로만 나눈다).
+   첫 줄: 종류 꼬리표, 이름, 각성 꼬리표, 잠김 조건. 둘째 줄: 설명(서버가 준 글. 줄바꿈하고 자르지 않는다) */
+.dsk .dsk-sk{display:flex;flex-direction:column;gap:6px;min-width:0}
+.dsk .dsk-s{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-width:0}
+.dsk .dsk-s + .dsk-s{padding-top:6px;border-top:1px solid var(--dsk-line)}
+.dsk .dsk-k{flex:none;font-size:10px;line-height:15px;color:var(--dsk-dim);white-space:nowrap}
+.dsk .dsk-n{flex:0 1 auto;min-width:0;font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+.dsk .dsk-d{flex:1 0 100%;min-width:0;font-size:12px;line-height:1.4;color:var(--dsk-dim);word-break:keep-all;overflow-wrap:anywhere}
+.dsk .dsk-s.dsk-lock .dsk-n{color:var(--dsk-dim);font-weight:400}
+.dsk .dsk-s.dsk-lock .dsk-d{opacity:.75}
+/* 못 채운 선행 조건(잠김 조건, 각성 전 조건)은 게임 본래의 선행 칩(.req.no)과 같은 붉은 칩 */
+.dsk .dsk-c{flex:none;display:inline-flex;align-items:center;gap:3px;padding:0 5px;border:1px solid rgba(255,107,107,.4);border-radius:4px;color:var(--dsk-red);background:rgba(255,107,107,.08);font-size:10px;line-height:14px;white-space:nowrap}
+.dsk .dsk-c::before{content:"\2717"}
+.dsk .dsk-c em{font-style:normal}
+.dsk .dsk-e{flex:none;padding:0 5px;border:1px solid rgba(255,107,107,.4);border-radius:4px;color:var(--dsk-red);background:rgba(255,107,107,.08);font-size:10px;line-height:14px;white-space:nowrap}
+.dsk .dsk-e::before{content:"\2717";margin-right:3px}
+.dsk .dsk-e.dsk-on{border-color:transparent;color:var(--dsk-amber);background:rgba(255,200,87,.14);font-weight:700}
+.dsk .dsk-e.dsk-on::before{content:none}
+
+/* 2. 숙련: 머리줄의 단계 표시 옆에 숙련도 막대, 「숙련도」, 숫자. 머리줄의 남은 폭을 막대가 채운다(단계 점 줄은 없다) */
+.dsk .dsk-pf{flex:1 1 auto;display:flex;align-items:center;gap:7px;min-width:0;min-height:14px;margin-left:2px}
+.dsk .dsk-bar{flex:1 1 auto;min-width:20px;height:6px;overflow:hidden;border-radius:3px;background:var(--dsk-line)}
+.dsk .dsk-bar i{display:block;height:100%;border-radius:3px;background:var(--dsk-amber);transform-origin:0 50%;transform:scaleX(var(--dsk-f,0));transition:transform .3s ease-out}
+.dsk .dsk-xl{flex:none;font-size:11px;line-height:1;color:var(--dsk-dim);white-space:nowrap}
+.dsk .dsk-pf.dsk-max .dsk-xl{display:none}
+.dsk .dsk-xp{flex:none;font:600 11px/1 var(--dsk-num);word-spacing:-3px;white-space:nowrap}
+.dsk .dsk-pf.dsk-max .dsk-xp{font-family:var(--dsk-kr);word-spacing:0;color:var(--dsk-amber)}
+
+/* 3. 다음 단계 비용(왼쪽)과 「강화」(오른쪽). 비용이 한 줄에 안 들어가면 왼쪽 묶음 안에서 꺾이고, 자원이 모자랄 때의 이유 글은 그 아랫줄 */
+.dsk .dsk-row{display:flex;align-items:center;gap:8px;min-width:0}
+.dsk .dsk-cw{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px}
+.dsk .dsk-cost{flex:0 1 auto;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;min-width:0;font:600 11px/16px var(--dsk-num)}
+.dsk .dsk-ci{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.dsk .dsk-ci b{font-weight:600}
+.dsk .dsk-ci.dsk-lack{color:var(--dsk-red)}
+.dsk .dsk-ic{flex:none;display:inline-grid;place-items:center;min-width:14px;height:16px;line-height:1}
+.dsk .dsk-ic.dsk-tx{font:400 10px/16px var(--dsk-kr);color:var(--dsk-dim)}
+/* 게임 자원 아이콘(div.art.i 안의 img)은 이 줄 높이에 맞게 작게 잡는다 */
+.dsk .dsk-ic .art{display:block;position:static;width:16px;height:16px;margin:0;border:0;border-radius:3px;background:none}
+.dsk .dsk-ic img,.dsk .dsk-ic svg{display:block;width:16px;height:16px;object-fit:contain}
+.dsk .dsk-hr{font-family:var(--dsk-kr);font-weight:400;white-space:nowrap}
+.dsk .dsk-why{flex:1 0 100%;min-width:0;font-size:11px;line-height:1.3;color:var(--dsk-dim)}
+.dsk .dsk-why:empty{display:none}
+.dsk .dsk-why.dsk-bad{color:var(--dsk-red)}
+.dsk .dsk-btn{-webkit-appearance:none;appearance:none;flex:none;margin:0;min-width:76px;min-height:40px;padding:4px 14px;border:1px solid var(--dsk-line);border-radius:6px;background:var(--dsk-panel);color:var(--dsk-fg);font:600 13px/1.2 var(--dsk-kr);white-space:nowrap;cursor:pointer;touch-action:manipulation;transition:transform .1s}
+.dsk .dsk-btn:hover{border-color:var(--dsk-cyan)}
+.dsk .dsk-btn:active{transform:scale(.97)}
+.dsk .dsk-btn:focus{outline:0}
+.dsk .dsk-btn:focus-visible{border-color:var(--dsk-cyan);box-shadow:0 0 0 1px var(--dsk-cyan)}
+.dsk .dsk-btn.dsk-go{border-color:var(--dsk-amber);color:var(--dsk-amber);background:rgba(255,200,87,.14)}
+.dsk .dsk-btn.dsk-go:hover{border-color:var(--dsk-amber);box-shadow:0 0 0 1px var(--dsk-amber)}
+.dsk .dsk-btn:disabled,.dsk .dsk-btn.dsk-dim{opacity:.45;cursor:not-allowed}
+.dsk .dsk-btn:disabled:hover,.dsk .dsk-btn.dsk-dim:hover{border-color:var(--dsk-line)}
+.dsk .dsk-btn.dsk-wait{border-color:var(--dsk-amber);color:var(--dsk-amber)}
+.dsk .dsk-err{font-size:11px;line-height:1.35;color:var(--dsk-red);overflow-wrap:anywhere}
+
+/* 움직임: 숙련 단계가 오르면 머리줄의 단계 표시가 한 번 튀고(작은 표시도), 자원이 모자란데 누르면 이유 글이 한 번 흔들린다 */
+.dsk .dsk-lvt.dsk-pop{animation:dsk-bump .52s cubic-bezier(.2,.9,.3,1.25)}
+.dsk.dsk-chip.dsk-pop{animation:dsk-bump .52s cubic-bezier(.2,.9,.3,1.25)}
+.dsk .dsk-why.dsk-nudge{animation:dsk-nudge .3s linear}
+@keyframes dsk-bump{from{opacity:.3;transform:scale(1.7)}}
+@keyframes dsk-nudge{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+
+/* 넓은 칸(자세히 창이나 넓은 카드): 머리줄(제목, 단계 표시, 숙련도 막대) 아래 왼쪽에 스킬 둘, 오른쪽에 비용과 강화 */
+@container dsk (min-width:460px){
+  .dsk .dsk-in{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-areas:"head head" "sk row" "err err";gap:7px 14px;padding:10px 12px}
+  .dsk .dsk-head{grid-area:head}
+  .dsk .dsk-sk{grid-area:sk;align-self:center}
+  .dsk.dsk-solo .dsk-sk{grid-column:1 / -1}
+  .dsk .dsk-row{grid-area:row;align-self:center}
+  .dsk .dsk-err{grid-area:err}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .dsk .dsk-lvt.dsk-pop,.dsk.dsk-chip.dsk-pop,.dsk .dsk-why.dsk-nudge{animation:none}
+  .dsk .dsk-bar i,.dsk .dsk-btn{transition:none}
+}
