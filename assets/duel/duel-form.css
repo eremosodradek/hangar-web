@@ -1,0 +1,385 @@
+/* duel-form.css  정예 대전 편성 창 부품의 모양(2026-11-13 ART 세션).
+   쓰는 법: duel-form.js 와 함께 부른다.
+   이유: 사용자 「대전 편성창도 ART에게 좀 더 카드 중심으로 만들어 달라고 해」. 모양은 기존 게임 화면 디자인을 따른다(재생 부품 duel-play.css 와 같은 기준).
+   기존 디자인 기준: 평평한 패널과 1px 테두리, 둥근 모서리(패널 10px, 카드 8px, 단추 6px, 표시 4px), 단추는 button.act 꼴(테두리 단추).
+   규칙: 모든 선택자는 .df 로 시작하고 안쪽 이름과 keyframes 이름은 df- 로 시작한다. 한 줄에 규칙 하나.
+   색과 글꼴은 게임 변수(--bg --panel --panel2 --line --fg --dim --cyan --mag --amber --red --green --mono)를 따르고, 변수가 없는 곳(미리 보기)에서는 같은 값으로 그린다.
+   폭은 화면이 아니라 부품 폭으로 가른다(container). 기본값은 휴대폰 꼴이고 부품 폭 720px 부터 PC 꼴.
+   높이: 부품은 --df-maxh(기본 화면 높이)를 넘지 않고, 소대 줄이 길면 가운데 영역(.df-body)만 세로로 밀린다.
+   색: 하늘색 = 내 편과 놓을 수 있는 자리, 분홍 = 상대, 호박색 = 집은 카드와 고른 소대, 초록 = 유리, 빨강 = 불리와 막힘.
+   원칙 2-9d: 움직임(keyframes 와 transition)은 transform 과 opacity 로만, 끝없이 도는 애니메이션 없음. */
+.df{--df-bg:var(--bg,#0b0e14);--df-panel:var(--panel,#121722);--df-panel2:var(--panel2,#181f2e);--df-line:var(--line,#243047);--df-fg:var(--fg,#dfe6f3);--df-dim:var(--dim,#8b97ad);--df-cyan:var(--cyan,#4fd8ff);--df-mag:var(--mag,#ff5fb0);--df-amber:var(--amber,#ffc857);--df-red:var(--red,#ff6b6b);--df-green:var(--green,#5fe0a0);--df-me:var(--df-cyan);--df-op:var(--df-mag);--df-shade:rgba(6,8,14,.82);--df-num:var(--mono,"SF Mono",Menlo,Consolas,monospace);--df-kr:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;--df-gap:4px;--df-n:5;container-type:inline-size;container-name:df;display:block;position:relative;color:var(--df-fg);font:13px/1.4 var(--df-kr);font-variant-numeric:tabular-nums;text-align:left;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+.df *,.df *::before,.df *::after{box-sizing:border-box}
+.df i,.df em{font-style:normal}
+.df .df-in{position:relative;display:flex;flex-direction:column;max-height:var(--df-maxh,100dvh);overflow:hidden;background:var(--df-panel);border:1px solid var(--df-line);border-radius:10px}
+
+/* 단추. 게임 button.act 꼴(테두리 단추). 주 단추와 고른 단추는 하늘색 테두리와 옅은 하늘색 바탕 */
+.df .df-btn{-webkit-appearance:none;appearance:none;margin:0;min-width:0;min-height:40px;padding:4px 12px;border:1px solid var(--df-line);border-radius:6px;background:var(--df-panel2);color:var(--df-fg);font:13px/1.2 var(--df-kr);text-align:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .1s}
+.df .df-btn:hover{border-color:var(--df-cyan)}
+.df .df-btn:active{transform:scale(.97)}
+.df .df-btn:focus{outline:0}
+.df .df-btn:focus-visible{border-color:var(--df-cyan);box-shadow:0 0 0 1px var(--df-cyan)}
+.df .df-btn:disabled{opacity:.45;cursor:not-allowed}
+.df .df-btn:disabled:hover{border-color:var(--df-line)}
+.df .df-btn.df-main{border-color:var(--df-cyan);color:var(--df-cyan);background:rgba(79,216,255,.14);font-weight:600}
+.df .df-btn.df-on{border-color:var(--df-cyan);color:var(--df-cyan);background:rgba(79,216,255,.14);font-weight:600}
+
+/* 머리줄: 제목, 상대 이름과 점수, 모드 고르기 */
+.df .df-head{flex:none;display:flex;align-items:center;gap:8px;min-height:50px;padding:5px 10px;border-bottom:1px solid var(--df-line)}
+.df .df-tt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}
+.df .df-title{font-size:15px;font-weight:700;line-height:1.25}
+.df .df-who{display:flex;align-items:center;gap:5px;min-width:0;font-size:12px}
+.df .df-wl{flex:none;padding:0 5px;border-radius:4px;font-size:10px;font-weight:700;line-height:16px;color:var(--df-op);background:rgba(255,95,176,.14)}
+.df .df-wn{min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.df .df-wr{flex:none;font-size:11px;color:var(--df-dim);white-space:nowrap}
+.df .df-seg{flex:none;display:flex}
+.df .df-seg .df-btn{min-width:54px;border-radius:0}
+.df .df-seg .df-btn:first-child{border-radius:6px 0 0 6px}
+.df .df-seg .df-btn:last-child{margin-left:-1px;border-radius:0 6px 6px 0}
+.df .df-seg .df-btn.df-on{position:relative;z-index:1}
+
+/* next: 지금 승수, 직전 결과, 마감까지 남은 시간 */
+.df .df-next{flex:none;display:flex;align-items:center;gap:10px;min-height:32px;padding:4px 10px;border-bottom:1px solid var(--df-line);background:var(--df-bg)}
+.df .df-sc{flex:none;display:flex;align-items:baseline;gap:4px;font:700 16px/1 var(--df-num)}
+.df .df-sc i{color:var(--df-dim)}
+.df .df-sa{color:var(--df-me)}
+.df .df-sd{color:var(--df-op)}
+.df .df-last{flex:1 1 auto;min-width:0;font-size:12px;color:var(--df-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.df .df-dl{flex:none;font-size:12px;font-weight:700;color:var(--df-amber);white-space:nowrap}
+.df .df-dl.df-late{color:var(--df-red)}
+
+/* 소대 줄. 길면 이 영역만 세로로 밀린다 */
+.df .df-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:6px;padding:8px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;background:var(--df-bg);scrollbar-width:thin;scrollbar-color:var(--df-line) transparent}
+.df .df-sq{flex:none;display:grid;grid-template-columns:auto 58px minmax(0,1fr);grid-template-areas:"head head head" "tacs tacs tacs" "vs ot opp" "mine mine mine";column-gap:6px;padding:6px;background:var(--df-panel);border:1px solid var(--df-line);border-radius:10px;outline:0}
+.df.df-k-def .df-sq{grid-template-areas:"head head head" "tacs tacs tacs" "mine mine mine"}
+.df.df-k-next .df-sq{grid-template-areas:"head head head" "tacs tacs tacs" "mine mine mine";cursor:pointer}
+.df.df-k-next .df-sq.df-fq{grid-template-areas:"vs ot opp";border-color:rgba(255,95,176,.35);cursor:default}
+.df .df-sq.df-can{border-style:dashed;border-color:var(--df-cyan)}
+.df .df-sq.df-over{border-style:solid;border-color:var(--df-cyan);background:rgba(79,216,255,.09)}
+.df .df-sq.df-out{opacity:.38;cursor:default}
+.df .df-sq.df-sel{border-color:var(--df-amber);box-shadow:0 0 0 1px var(--df-amber)}
+.df .df-sq:focus-visible{border-color:var(--df-cyan);box-shadow:0 0 0 1px var(--df-cyan)}
+.df .df-sqh{grid-area:head;display:flex;align-items:center;gap:8px;min-width:0}
+.df .df-sqn{flex:none;font-size:13px;font-weight:700}
+.df .df-sqc{flex:1 1 auto;min-width:0;font-size:12px;color:var(--df-dim);white-space:nowrap}
+.df .df-tac{flex:0 1 auto;display:flex;align-items:center;gap:6px;max-width:62%;padding:4px 10px}
+.df .df-tac small{flex:none;font-size:10px;color:var(--df-dim)}
+.df .df-tac b{min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.df .df-tac::after{content:"";flex:none;width:6px;height:6px;margin-left:2px;border-right:1.5px solid var(--df-dim);border-bottom:1.5px solid var(--df-dim);transform:translateY(-2px) rotate(45deg)}
+.df .df-sq.df-open .df-tac{border-color:var(--df-cyan)}
+.df .df-sq.df-open .df-tac::after{transform:translateY(2px) rotate(225deg)}
+.df .df-tacs{grid-area:tacs;display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin-top:4px}
+.df .df-sq.df-open .df-tacs{display:grid}
+.df .df-to{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.df .df-vs{grid-area:vs;align-self:center;margin-top:4px;font:700 11px/1 var(--df-num);color:var(--df-op)}
+.df .df-ot{grid-area:ot;align-self:center;min-width:0;margin-top:4px;font-size:10px;line-height:1.25;color:var(--df-dim);white-space:pre-line;overflow-wrap:anywhere}
+.df .df-oc{grid-area:opp;min-width:0;display:grid;grid-template-columns:repeat(var(--df-n),minmax(0,1fr));gap:var(--df-gap);margin-top:4px}
+.df .df-sq.df-fq .df-vs,.df .df-sq.df-fq .df-ot,.df .df-sq.df-fq .df-oc{margin-top:0}
+.df .df-mine{grid-area:mine;display:grid;grid-template-columns:repeat(var(--df-n),minmax(0,1fr));gap:var(--df-gap);margin-top:4px}
+.df .df-slot{position:relative;min-width:0;aspect-ratio:3/4;border-radius:8px;outline:0}
+.df .df-slot::before{content:"";position:absolute;inset:0;border:1px dashed var(--df-line);border-radius:8px}
+.df .df-slot.df-full::before{display:none}
+.df .df-slot.df-off{display:none}
+.df .df-sq.df-can .df-slot::before{border-color:rgba(79,216,255,.55)}
+.df .df-slot:focus-visible::before{border-style:solid;border-color:var(--df-cyan)}
+
+/* 카드. 게임의 소녀 그림 칸(.art)과 같은 꼴: 3대4, 둥근 모서리, 1px 테두리, 왼쪽 위 등급, 오른쪽 위 클래스, 아래 이름 */
+.df .df-card{position:relative;min-width:0;outline:0;cursor:pointer;--df-qb:#2a3446;--df-qc:#aab4c8}
+.df .df-card.df-q-B{--df-qb:#1c3d4a;--df-qc:var(--df-cyan)}
+.df .df-card.df-q-A{--df-qb:#3d1c4a;--df-qc:var(--df-mag)}
+.df .df-card.df-q-S{--df-qb:#4a3a1c;--df-qc:var(--df-amber)}
+.df .df-card.df-q-H{--df-qb:#4a3a1c;--df-qc:#221600}
+.df .df-fr{position:relative;aspect-ratio:3/4;overflow:hidden;background:var(--df-panel);border:1px solid var(--df-line);border-radius:8px;transition:transform .14s cubic-bezier(.2,.9,.3,1.2)}
+.df .df-card:focus-visible .df-fr{border-color:var(--df-cyan);box-shadow:0 0 0 1px var(--df-cyan)}
+.df .df-card.df-pick{z-index:3}
+@media (hover:hover){
+  .df .df-card.df-own:hover .df-fr{border-color:var(--df-cyan)}
+}
+.df .df-card.df-pick .df-fr{transform:translateY(-6%) scale(1.04);border-color:var(--df-amber);box-shadow:0 0 0 1px var(--df-amber)}
+.df .df-card.df-press .df-fr{transform:scale(1.07);transition:transform .14s .24s}
+.df .df-pt{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 30% 25%,#1f2b40,#0f141f 70%)}
+.df .df-ph{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;font-weight:700;color:rgba(255,255,255,.2)}
+.df .df-art{position:absolute;inset:0}
+.df .df-art.df-noart{display:none}
+.df .df-art img{pointer-events:none;-webkit-user-drag:none}
+.df .df-art .df-im,.df .df-art .art img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 10%}
+/* 게임 그림 꼴(div.art 안의 img)이 카드 안에서 꽉 차게. 겹쳐 그리는 띠는 숨기고 그림이 없으면 이름 첫 글자 판이 보인다 */
+.df .df-art .art{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;margin:0;border:0;border-radius:0;background:none}
+.df .df-art .art>*:not(img){display:none}
+.df .df-art .art.fb{display:none}
+.df .df-rar{position:absolute;left:3px;top:3px;z-index:3;padding:0 4px;border-radius:4px;font-size:10px;font-weight:700;line-height:14px;color:var(--df-qc);background:var(--df-qb)}
+.df .df-rar:empty{display:none}
+.df .df-card.df-q-H .df-rar{background:linear-gradient(135deg,#ffe08a,#e0a020)}
+.df .df-cls{position:absolute;right:3px;top:3px;z-index:3;width:16px;height:16px;display:grid;place-items:center;border-radius:4px;font-size:9px;font-weight:700;line-height:1;color:var(--df-cyan);background:var(--df-shade)}
+.df .df-cls svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.df .df-cls svg .a{fill:var(--df-mag);stroke:none}
+.df .df-cls svg .g{fill:var(--df-amber);stroke:none}
+.df .df-nm{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:1px 2px 2px;font-size:10px;line-height:1.25;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--df-shade)}
+/* 숙련 단계 작은 표시(sk.lv 가 첫 단계를 넘었을 때만 글이 든다). 등급 표시 아래. 격납고 스킬 부품의 작은 표시(.dsk-chip)와 같은 꼴이고 세 대전 부품(dlb-prof df-prof dp-prof)이 같은 값을 쓴다 */
+.df .df-prof{position:absolute;left:3px;top:19px;z-index:3;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:22px;height:14px;padding:0 4px;border-radius:4px;color:var(--df-amber);background:var(--df-shade);box-shadow:inset 0 0 0 1px rgba(255,200,87,.4);font:700 10px/14px var(--df-num);white-space:nowrap}
+.df .df-prof::before{content:"";flex:none;width:5px;height:5px;border-radius:1px;background:currentColor;transform:rotate(45deg)}
+.df .df-prof:empty{display:none}
+/* 칸 수 막대(소녀가 차지하는 칸)와 스킬 잠김 자물쇠 */
+/* 칸 수: 게임 함교 정예 칸의 표기(.elite-cost)와 같은 값. 어두운 칩 위 하늘색 세로 막대(사용자 2026-11-13 「함교는 파란색 세로로 긴 막대였는데?」) */
+.df .df-pips{position:absolute;left:3px;bottom:19px;z-index:3;display:inline-flex;gap:2px;padding:2px 3px;border-radius:3px;background:rgba(6,8,14,.75)}
+.df .df-pips:empty{display:none}
+.df .df-pips i{display:block;width:4px;height:9px;border-radius:1px;background:var(--df-cyan)}
+.df .df-lock{position:absolute;right:3px;bottom:18px;z-index:3;display:none;width:14px;height:14px;place-items:center;border-radius:4px;color:var(--df-fg);background:var(--df-shade)}
+.df .df-lock svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.df .df-card.df-locked .df-lock{display:grid}
+/* 상성 표시(rules.vs 가 있을 때만 켜진다). 세모 방향 = 그 카드가 유리(위)한지 불리(아래)한지, 색 = 나에게 좋음(초록) 나쁨(빨강) */
+.df .df-mk{position:absolute;right:3px;top:21px;z-index:3;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.df .df-up,.df .df-dn{display:none;align-items:center;gap:2px;padding:0 3px;border-radius:3px;font:700 9px/12px var(--df-num);background:var(--df-shade)}
+.df .df-up::before{content:"";width:0;height:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-bottom:5px solid currentColor}
+.df .df-dn::before{content:"";width:0;height:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:5px solid currentColor}
+.df .df-card.df-hasup .df-up{display:flex}
+.df .df-card.df-hasdn .df-dn{display:flex}
+/* 내 카드와 상대 카드 모두 같은 규칙: 위 세모 초록은 나에게 유리, 아래 세모 빨강은 나에게 불리 */
+.df .df-up{color:var(--df-green)}
+.df .df-dn{color:var(--df-red)}
+/* 상대 카드. 휴대폰에서는 얼굴만 보이는 낮은 칸(이름과 등급은 눌러서 정보 줄로 본다) */
+.df .df-card.df-foe{cursor:default}
+.df .df-card.df-foe .df-fr{aspect-ratio:auto;height:40px;border-color:rgba(255,95,176,.4)}
+.df .df-card.df-foe .df-rar,.df .df-card.df-foe .df-nm,.df .df-card.df-foe .df-pips,.df .df-card.df-foe .df-lock{display:none}
+.df .df-card.df-foe .df-ph{font-size:15px}
+.df .df-card.df-foe .df-cls{right:2px;top:2px;width:14px;height:14px}
+.df .df-card.df-foe .df-cls svg{width:10px;height:10px}
+.df .df-card.df-foe .df-mk{left:2px;right:auto;top:auto;bottom:2px;flex-direction:row}
+.df .df-card.df-foe .df-prof{left:2px;top:2px}
+.df .df-card.df-good .df-fr{border-color:var(--df-green);box-shadow:0 0 0 1px var(--df-green)}
+.df .df-card.df-bad .df-fr{border-color:var(--df-red);box-shadow:0 0 0 1px var(--df-red)}
+
+/* 정보 줄: 고른 카드의 화력, 장갑, 전직, 스킬 상태. 높이를 잡아 두어 글이 바뀌어도 아래가 밀리지 않는다 */
+.df .df-info{flex:none;display:flex;flex-wrap:wrap;align-items:center;align-content:center;gap:3px 5px;height:44px;overflow:hidden;padding:3px 10px;border-top:1px solid var(--df-line);font-size:11px}
+.df .df-hint{color:var(--df-dim);font-size:12px}
+.df .df-info.df-has .df-hint{display:none}
+.df .df-iname{display:none;font-size:13px;font-weight:700}
+.df .df-info.df-has .df-iname{display:inline}
+.df .df-chip{display:none;padding:0 5px;border-radius:4px;line-height:17px;white-space:nowrap;background:rgba(255,255,255,.07)}
+.df .df-info.df-has .df-chip{display:inline-block}
+.df .df-info.df-has .df-chip.df-off{display:none}
+.df .df-chip.df-c-cls{color:var(--df-cyan)}
+.df .df-chip.df-c-up{color:var(--df-green)}
+.df .df-chip.df-c-dn{color:var(--df-red)}
+.df .df-chip.df-c-ska,.df .df-chip.df-c-skp{color:var(--df-dim)}
+.df .df-chip.df-c-ske{color:var(--df-amber)}
+
+/* 배치 밖 정예가 있을 때만 소대 영역 맨 아래 작은 한 줄. 바탕을 눌러 카드를 빼는 조작은 없다 */
+.df .df-rest{flex:none;display:flex;align-items:center;gap:8px;min-width:0;min-height:72px;padding:4px 6px;border-top:1px solid var(--df-line)}
+.df .df-rest.df-off{display:none}
+.df .df-rn{flex:none;font-size:11px;font-weight:600;color:var(--df-dim);white-space:nowrap}
+.df .df-rs{flex:1 1 auto;min-width:0;display:flex;gap:var(--df-gap);overflow-x:auto;overflow-y:hidden;touch-action:pan-x;scrollbar-width:none}
+.df .df-rs::-webkit-scrollbar{display:none}
+.df .df-rs .df-card{flex:0 0 48px}
+.df .df-rs .df-fr{aspect-ratio:3/4;height:64px}
+
+/* 합계 줄: 전체 인원과 칸, 막힌 이유 */
+.df .df-sum{flex:none;display:flex;align-items:center;gap:10px;min-height:26px;padding:2px 10px;border-top:1px solid var(--df-line);font-size:12px}
+.df .df-sg,.df .df-ss{flex:none;font-weight:600;white-space:nowrap}
+.df .df-sg.df-bad,.df .df-ss.df-bad{color:var(--df-red)}
+.df .df-why{position:relative;flex:1 1 auto;min-width:0;min-height:18px;line-height:18px;text-align:right}
+.df .df-err{display:block;color:var(--df-red);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.df .df-tip{position:absolute;inset:0;opacity:0;pointer-events:none;font-weight:600;color:var(--df-red);background:var(--df-panel);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.df .df-tip.df-on{animation:df-tip 2.4s linear}
+
+/* 단추 줄 */
+.df .df-foot{flex:none;display:flex;gap:6px;padding:6px 10px 10px}
+.df .df-foot .df-btn{flex:1 1 0;min-height:44px}
+.df .df-foot .df-btn.df-main{flex:1.5 1 0;font-size:14px}
+
+/* 끄는 동안 카드가 올라와 있는 층. 밀리는 영역 밖이라 잘리지 않고 손가락을 따라온다(transform) */
+.df .df-lift{position:absolute;left:0;top:0;width:0;height:0;z-index:20;pointer-events:none}
+.df .df-lift .df-card{position:absolute;left:var(--df-gx,0px);top:var(--df-gy,0px);width:var(--df-gw,60px);pointer-events:none;transform:translate3d(var(--df-tx,0px),var(--df-ty,0px),0) scale(1.08);will-change:transform}
+.df .df-lift .df-card .df-fr{transform:none;border-color:var(--df-amber);box-shadow:0 0 0 1px var(--df-amber),0 8px 18px rgba(0,0,0,.55)}
+
+/* 움직임. 처음 열 때 카드가 차례로 깔리고, 자리로 들어갈 때 온 쪽에서 짧게 미끄러져 들어온다. 넣을 수 없으면 한 번 흔들린다 */
+.df .df-card.df-new{animation:df-deal .34s calc(var(--df-k,0) * 24ms) cubic-bezier(.2,.9,.3,1.1) backwards}
+.df .df-card.df-slide{z-index:4;animation:df-slide .22s cubic-bezier(.2,.9,.3,1.15)}
+.df .df-fr.df-shake{animation:df-shake .32s linear}
+@keyframes df-deal{from{opacity:0;transform:translateY(14px) scale(.94)}}
+@keyframes df-slide{from{opacity:.4;transform:translate(var(--df-fx,0px),var(--df-fy,0px)) scale(1.06)}}
+@keyframes df-shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+@keyframes df-tip{0%{opacity:1}82%{opacity:1}100%{opacity:0}}
+
+/* PC 꼴: 부품 폭 720px 부터. 왼쪽 소대 이름과 작전, 내 카드, 가운데 VS, 오른쪽 상대 카드 */
+@container df (min-width:720px){
+  .df .df-in{--df-gap:6px}
+  .df .df-head{min-height:54px;padding:6px 16px}
+  .df .df-tt{flex-direction:row;align-items:baseline;gap:14px}
+  .df .df-title{font-size:17px}
+  .df .df-who{font-size:13px}
+  .df .df-seg .df-btn{min-width:72px}
+  .df .df-next{min-height:36px;padding:4px 16px;gap:14px}
+  .df .df-last{font-size:13px}
+  .df .df-dl{font-size:13px}
+  .df .df-body{gap:8px;padding:10px 16px}
+  .df .df-sq{grid-template-columns:150px minmax(0,1fr) 30px minmax(0,1fr) 84px;grid-template-areas:"head mine vs opp ot" "tacs tacs tacs tacs tacs";column-gap:10px;align-items:center;padding:8px 12px}
+  .df.df-k-def .df-sq,.df.df-k-next .df-sq{grid-template-columns:150px minmax(0,1fr);grid-template-areas:"head mine" "tacs tacs"}
+  .df.df-k-next .df-sq.df-fq{grid-template-columns:30px 110px minmax(0,1fr);grid-template-areas:"vs ot opp"}
+  .df .df-sqh{flex-direction:column;align-items:stretch;gap:3px}
+  .df .df-sqn{font-size:14px}
+  .df .df-sqc{flex:none}
+  .df .df-tac{max-width:none;margin-top:3px;padding:4px 8px}
+  .df .df-tac b{flex:1 1 auto;text-align:left}
+  .df .df-tacs{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin-top:8px}
+  .df .df-vs{margin-top:0;justify-self:center;font-size:13px}
+  .df .df-ot{margin-top:0;font-size:11px}
+  .df .df-oc{margin-top:0;grid-template-columns:repeat(var(--df-n),minmax(0,86px));justify-content:start}
+  .df .df-mine{margin-top:0;grid-template-columns:repeat(var(--df-n),minmax(0,86px));justify-content:end}
+  .df.df-k-def .df-mine,.df.df-k-next .df-mine{justify-content:start}
+  .df .df-card.df-foe .df-fr{aspect-ratio:3/4;height:auto}
+  .df .df-card.df-foe .df-rar:not(:empty),.df .df-card.df-foe .df-nm{display:block}
+  .df .df-card.df-foe .df-pips{display:flex}
+  .df .df-card.df-foe.df-locked .df-lock{display:grid}
+  .df .df-card.df-foe .df-ph{font-size:22px}
+  .df .df-card.df-foe .df-cls{right:3px;top:3px;width:16px;height:16px}
+  .df .df-card.df-foe .df-cls svg{width:12px;height:12px}
+  .df .df-card.df-foe .df-mk{left:auto;right:3px;top:21px;bottom:auto;flex-direction:column}
+  .df .df-card.df-foe .df-prof{left:3px;top:19px}
+  .df .df-nm{font-size:11px}
+  .df .df-info{height:34px;padding:3px 16px;font-size:12px}
+  .df .df-iname{font-size:14px}
+  .df .df-chip{line-height:19px}
+  .df .df-sum{padding:2px 16px;font-size:13px}
+  .df .df-foot{justify-content:flex-end;gap:8px;padding:8px 16px 12px}
+  .df .df-foot .df-btn{flex:0 0 auto;min-width:118px}
+  .df .df-foot .df-btn.df-main{flex:0 0 auto;min-width:168px}
+}
+
+/* 채우기 꼴(opts.fill, 2026-11-13 게임이 대전 창을 화면 전체로 띄운다). 받은 칸의 높이를 다 쓴다.
+   부품이 크기 기준 칸(container-type:size)이 되어 높이 단위(cqh)로 카드 크기를 셈한다. 화면 회전이나 주소 막대 높이 변화는 CSS 가 따라간다(코드가 크기를 듣지 않는다).
+   변수는 .df-in 에 둔다(기준 칸 자신에게는 그 칸의 단위가 듣지 않는다). --df-n(한 줄 칸 수)과 --df-sq(소대 수)는 js 가 .df-in 에 적는다.
+   머리줄, 정보 줄, 합계 줄, 단추 줄은 고정이고 소대 줄 영역이 남는 높이를 차지한다. 넘치면 그 영역만 세로로 밀린다.
+   휴대폰 꼴: 카드 폭은 한 줄 칸 수로 정해져 있으니 높이가 넉넉하면 그림 칸이 세로로 길어진다(3대4 에서 폭의 1.9배까지).
+     --df-fix 는 소대 줄 영역 밖의 높이(머리줄 51 + 정보 줄 45 + 합계 줄 27 + 단추 줄 60), --df-per 는 소대 줄 하나에서 카드 말고 드는 높이. */
+.df.df-fill{container-type:size;height:100%;min-height:300px}
+.df.df-fill .df-in{height:100%;max-height:none;border:0;border-radius:0;--df-fix:183px;--df-per:102px;--df-cw:calc((100cqw - 30px - (var(--df-n) - 1) * var(--df-gap)) / var(--df-n));--df-ch:clamp(calc(var(--df-cw) * 1.3333),calc((100cqh - var(--df-fix) - 16px - (var(--df-sq) - 1) * 6px) / var(--df-sq) - var(--df-per)),calc(var(--df-cw) * 1.9))}
+.df.df-fill.df-k-def .df-in{--df-per:58px}
+.df.df-fill.df-k-next .df-in{--df-fix:272px;--df-per:58px}
+.df.df-fill .df-body{flex:1 1 0}
+.df.df-fill .df-sq:first-child{margin-top:auto}
+.df.df-fill .df-sq:last-of-type{margin-bottom:auto}
+.df.df-fill .df-slot{aspect-ratio:auto;height:var(--df-ch)}
+.df.df-fill .df-mine .df-fr{aspect-ratio:auto;height:var(--df-ch)}
+
+/* 채우기 꼴의 PC 꼴: 카드 폭을 높이에서 정한다(그림은 3대4 그대로). 폭이 넓어도 높이가 낮으면 카드가 작아져 다 들어간다.
+   높이 셈: (칸 높이 - 고정 높이 --df-hfix - 줄 수 × 26px) ÷ (줄 수 × 4/3 + next 전용 여백 --df-hk). 폭 셈: (칸 폭 - --df-wfix) ÷ 한 줄에 놓이는 카드 수 --df-wn */
+@container df (min-width:720px){
+  .df.df-fill .df-in{max-width:1280px;margin:0 auto;--df-rows:var(--df-sq);--df-hfix:214px;--df-hk:0;--df-wfix:412px;--df-wn:calc(var(--df-n) * 2);--df-cw:max(44px,min(132px,calc((100cqh - var(--df-hfix) - var(--df-rows) * 26px) / (var(--df-rows) * 1.3334 + var(--df-hk))),calc((min(100cqw,1280px) - var(--df-wfix)) / var(--df-wn))));--df-ch:calc(var(--df-cw) * 1.3333)}
+  .df.df-fill.df-k-def .df-in{--df-wfix:244px;--df-wn:var(--df-n)}
+  .df.df-fill.df-k-next .df-in{--df-rows:calc(var(--df-sq) + 1);--df-hfix:232px;--df-hk:0;--df-wfix:244px;--df-wn:var(--df-n)}
+  .df.df-fill .df-mine,.df.df-fill .df-oc{grid-template-columns:repeat(var(--df-n),var(--df-cw))}
+  .df.df-fill .df-card.df-foe .df-fr{aspect-ratio:auto;height:var(--df-ch)}
+}
+/* 채우기 꼴의 낮은 가로 꼴(휴대폰을 눕혔을 때): 머리줄과 정보 줄과 단추 줄을 얇게. 소대 줄은 하나씩 보이고 세로로 민다.
+   공격 편성은 상대 작전 글을 가운데 VS 아래로 옮겨 카드 자리를 넓힌다 */
+@container df (min-width:720px) and (max-height:560px){
+  .df.df-fill .df-in{--df-cw:max(40px,min(86px,calc((100cqh - 204px) * .75),calc((min(100cqw,1280px) - var(--df-wfix)) / var(--df-wn))))}
+  .df.df-fill.df-k-fight .df-in{--df-wfix:310px}
+  .df.df-fill.df-k-fight .df-sq{grid-template-columns:104px minmax(0,1fr) 64px minmax(0,1fr);grid-template-areas:"head mine vs opp" "head mine ot opp" "tacs tacs tacs tacs"}
+  .df.df-fill.df-k-fight .df-vs{align-self:end}
+  .df.df-fill.df-k-fight .df-ot{align-self:start;margin-top:3px;font-size:10px;text-align:center}
+  .df.df-fill .df-sqh{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:2px 6px}
+  .df.df-fill .df-tac{flex:1 1 100%;margin-top:0}
+  .df.df-fill .df-tac small{display:none}
+  .df.df-fill .df-head{min-height:44px;padding:2px 16px}
+  .df.df-fill .df-seg .df-btn{min-height:40px}
+  .df.df-fill .df-tac{min-height:40px}
+  .df.df-fill .df-next{min-height:26px;padding:2px 16px}
+  .df.df-fill .df-body{padding:8px 16px}
+  .df.df-fill .df-info{height:26px;flex-wrap:nowrap}
+  .df.df-fill .df-sum{min-height:20px}
+  .df.df-fill .df-foot{padding:4px 16px 6px}
+  .df.df-fill .df-foot .df-btn{min-height:40px}
+}
+
+/* 수동 모드는 제목 옆 꼬리표와 머리줄 바로 아래 설명으로 읽힌다 */
+.df .df-off.df-off{display:none}
+.df .df-titles{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;min-width:0}
+.df .df-manual{flex:none;padding:1px 5px;border:1px solid rgba(255,200,87,.5);border-radius:4px;color:var(--df-amber);background:rgba(255,200,87,.1);font-size:10px;line-height:16px;white-space:nowrap}
+.df .df-manual-hint{flex:none;padding:4px 10px;border-bottom:1px solid var(--df-line);color:var(--df-amber);font-size:11px;line-height:16px;overflow-wrap:anywhere}
+.df .df-seg .df-mode-manual.df-on{border-color:var(--df-amber);color:var(--df-amber);background:rgba(255,200,87,.14)}
+
+/* 다음 소대: 결과와 상대는 고정, 내 타일 영역만 세로로 민다. 카드 노드는 접어도 남긴다 */
+.df.df-k-next .df-in{--df-next-card:60px}
+.df.df-k-next .df-next{gap:8px;height:48px;min-height:48px;padding:4px 8px;border:1px solid var(--df-line);border-left-width:4px;border-radius:8px;background:var(--df-bg)}
+.df.df-k-next .df-next.df-won{border-color:var(--df-green)}
+.df.df-k-next .df-next.df-lost{border-color:var(--df-red)}
+.df .df-result{flex:none;font-size:20px;line-height:1;color:var(--df-green)}
+.df .df-next.df-lost .df-result{color:var(--df-red)}
+.df.df-k-next .df-sc{font-size:28px}
+.df.df-k-next .df-last{font-size:11px}
+.df.df-k-next .df-dl{font-size:10px;color:var(--df-dim);font-weight:400}
+.df.df-k-next .df-dl.df-late{color:var(--df-red)}
+.df.df-k-next .df-head{min-height:40px;padding:0 8px;border:0}
+.df.df-k-next .df-title{color:var(--df-amber);font-size:16px}
+.df.df-k-next .df-tt{display:block}
+.df.df-k-next .df-head .df-btn{min-height:40px;padding:2px 8px;font-size:11px}
+.df.df-k-next .df-body{gap:6px;padding:8px}
+.df.df-k-next .df-sq{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "mine";padding:4px;column-gap:0}
+.df.df-k-next .df-sqh{flex-direction:row;align-items:center;gap:6px;min-height:20px}
+.df.df-k-next .df-sqc{flex:1 1 auto;font-size:11px}
+.df .df-foe-sep{display:none}
+.df .df-foe-name{font-size:12px}
+.df .df-foe-tactic{display:inline-block;padding:0 5px;border-radius:4px;background:rgba(255,95,176,.12);font-size:10px;line-height:18px;vertical-align:middle}
+.df .df-deploy{flex:none;padding:0 5px;border-radius:4px;background:rgba(255,200,87,.16);color:var(--df-amber);font-size:11px;line-height:18px}
+.df.df-k-next .df-sq.df-sel{border-color:var(--df-amber);box-shadow:inset 0 0 0 1px var(--df-amber)}
+.df.df-k-next .df-mine,.df.df-k-next .df-oc{grid-template-columns:repeat(var(--df-n),minmax(0,var(--df-next-card)));justify-content:center;gap:4px;margin-top:4px}
+.df.df-k-next .df-slot,.df.df-fill.df-k-next .df-slot{aspect-ratio:3/4;height:auto}
+.df.df-k-next .df-mine .df-fr,.df.df-k-next .df-card.df-foe .df-fr{aspect-ratio:3/4;height:auto}
+.df.df-k-next .df-sq.df-out{order:1;min-height:24px;padding:1px 4px;border-color:transparent;background:transparent;opacity:.38;cursor:default}
+.df.df-k-next .df-out .df-mine{display:none}
+.df.df-fill.df-k-next .df-sq:first-child,.df.df-fill.df-k-next .df-sq:last-of-type{margin-top:0;margin-bottom:0}
+.df.df-k-next .df-sq.df-fq{flex:none;grid-template-columns:minmax(0,1fr);grid-template-areas:"ot" "opp";margin:4px 8px;padding:4px;border-color:rgba(255,95,176,.4);cursor:default}
+.df.df-k-next .df-fq .df-vs{display:none}
+.df.df-k-next .df-fq .df-ot{display:flex;align-items:center;justify-content:center;gap:6px;min-height:20px;margin:0;text-align:center;font-size:12px;line-height:20px;color:var(--df-op);white-space:normal}
+.df.df-k-next .df-card.df-foe .df-rar:not(:empty),.df.df-k-next .df-card.df-foe .df-nm{display:block}
+.df.df-k-next .df-card.df-foe .df-pips{display:flex}
+.df.df-k-next .df-card.df-foe.df-locked .df-lock{display:grid}
+.df.df-k-next .df-card.df-foe .df-cls{right:3px;top:3px;width:16px;height:16px}
+.df.df-k-next .df-card.df-foe .df-cls svg{width:12px;height:12px}
+.df.df-k-next .df-card.df-foe .df-mk{left:auto;right:3px;top:21px;bottom:auto;flex-direction:column}
+.df.df-k-next .df-card.df-foe .df-prof{left:3px;top:19px}
+.df .df-next-tacs{flex:none;min-width:0;padding:2px 8px;border-top:1px solid var(--df-line)}
+.df .df-tac-label{display:block;margin-bottom:2px;font-size:10px;line-height:14px;color:var(--df-dim)}
+.df .df-tac-line{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:4px}
+.df .df-next-tacs .df-to{min-height:40px;padding:2px 3px;font-size:11px;white-space:normal;overflow-wrap:anywhere}
+.df .df-next-tacs.df-muted{opacity:.5}
+.df.df-k-next .df-info{height:24px;padding:2px 8px;flex-wrap:nowrap;font-size:10px}
+.df.df-k-next .df-hint{display:none}
+.df.df-k-next .df-iname{font-size:11px;white-space:nowrap}
+.df.df-k-next .df-sum{min-height:22px;padding:1px 8px;font-size:11px}
+.df.df-k-next .df-foot{padding:4px 8px 8px}
+.df.df-k-next .df-foot .df-btn.df-main{flex:1 1 0;width:100%;min-width:0;min-height:52px;font-size:16px;border-color:var(--df-amber);color:var(--df-amber);background:rgba(255,200,87,.14)}
+@container df (min-width:720px){
+  .df.df-k-next .df-in{--df-next-card:86px}
+  .df.df-k-next .df-sq{grid-template-columns:120px minmax(0,1fr);grid-template-areas:"head mine";column-gap:8px}
+  .df.df-k-next .df-sqh{flex-wrap:wrap;align-content:center}
+  .df.df-k-next .df-mine,.df.df-k-next .df-oc{margin-top:0}
+  .df.df-k-next .df-sq.df-fq{grid-template-columns:120px minmax(0,1fr);grid-template-areas:"ot opp";column-gap:8px}
+  .df.df-k-next .df-fq .df-ot{flex-direction:column;gap:2px;white-space:pre-line;line-height:18px}
+  .df .df-foe-tactic{margin-left:0}
+  .df .df-next-tacs{display:flex;align-items:center;gap:8px}
+  .df .df-tac-label{flex:none;margin:0;font-size:11px}
+  .df .df-tac-line{flex:1 1 auto;min-width:0}
+}
+@container df (min-width:720px) and (max-height:560px){
+  .df.df-fill.df-k-next .df-in{display:grid;grid-template-columns:minmax(240px,1fr) minmax(0,2fr);grid-template-rows:36px 42px minmax(0,1fr) 44px 24px 22px 50px;--df-next-card:40px}   /* 머리줄 42px: 테두리 1px 을 빼고도 닫기 단추가 40px */
+  .df.df-fill.df-k-next .df-next{grid-column:1 / -1;grid-row:1;height:36px;min-height:36px}
+  .df.df-fill.df-k-next .df-sc{font-size:24px}
+  .df.df-fill.df-k-next .df-head{grid-column:1 / -1;grid-row:2;padding-top:0;padding-bottom:0;align-items:center}
+  .df.df-fill.df-k-next .df-fq{grid-column:1;grid-row:3;align-self:start;grid-template-columns:minmax(0,1fr);grid-template-areas:"ot" "opp";margin:4px;padding:4px}
+  .df.df-fill.df-k-next .df-fq .df-ot{flex-direction:row;gap:6px;white-space:normal;line-height:20px;font-size:11px}
+  .df.df-fill.df-k-next .df-body{grid-column:2;grid-row:3;padding:4px}
+  .df.df-fill.df-k-next .df-sq:not(.df-fq){grid-template-columns:100px minmax(0,1fr);column-gap:4px}
+  .df.df-fill.df-k-next .df-next-tacs{grid-column:1 / -1;grid-row:4;padding:1px 8px}
+  .df.df-fill.df-k-next .df-info{grid-column:1 / -1;grid-row:5}
+  .df.df-fill.df-k-next .df-sum{grid-column:1 / -1;grid-row:6}
+  .df.df-fill.df-k-next .df-foot{grid-column:1 / -1;grid-row:7;padding:4px 8px 5px}   /* 줄 50px 에서 위 테두리 1px 과 여백을 빼고 출전 단추가 40px */
+  .df.df-fill.df-k-next .df-foot .df-btn.df-main{min-height:40px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .df .df-card.df-new,.df .df-card.df-slide,.df .df-fr.df-shake{animation:none}
+  .df .df-fr,.df .df-btn{transition:none}
+}

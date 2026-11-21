@@ -1,0 +1,184 @@
+/* fw-report.css  함대전 판 전체 결과 화면 부품의 모양(2026-11-15 ART 세션).
+   쓰는 법: fw-report.js 와 함께 부른다.
+   이유: 사용자 「기본적인 대전 연출과 보고서는 정예 대전을 기반으로 만든다.」 정예 대전 결과 화면(duel-play.css)과 대전 탭(duel-lobby.css)의 결을 따른다.
+   기존 디자인 기준: 평평한 패널과 1px 테두리, 둥근 모서리(칸 8px, 단추와 줄 6px, 꼬리표와 초상 4px), 숫자는 고정폭 글꼴, 그림자 없음.
+   규칙: 모든 선택자는 .fwr 로 시작하고 안쪽 이름과 keyframes 이름은 fwr- 로 시작한다. 한 줄에 규칙 하나.
+   색과 글꼴은 게임 변수(--bg --panel --panel2 --line --fg --dim --cyan --mag --amber --red --green --mono)를 따르고, 변수가 없는 곳(미리 보기)에서는 같은 값으로 그린다.
+   폭은 화면이 아니라 받은 칸의 폭(container)으로 가른다. 기본값은 휴대폰 꼴, 부품 폭 620px 부터 소대전 줄이 한 줄 격자, 820px 부터 소대 칸 안도 가로 꼴.
+   색: 하늘색 = 보는 편(왼쪽), 자홍 = 상대 편(오른쪽), 초록 = 보는 편 승, 붉은색 = 보는 편 패, 호박색 = 장면 꼬리표와 연승과 최다 격파.
+     편 색은 --fwr-team 하나로 받는다(.fwr-left 와 .fwr-right 가 정한다): 소대 점, 체력 막대, 대장 꼬리표, 최다 격파와 장면 꼬리표의 편 점. 왼쪽 띠는 소대전 줄의 승패에만 쓴다.
+   글자 크기 단계: 11 12 13 14 20 22 와 큰 숫자(남은 소대 수) 40.
+   가운데 축: 점수판과 소대전 줄 모두 좌우 대칭이고 두 편이 가운데를 마주 본다(왼쪽 편은 오른쪽 맞춤, 맨 앞 소대와 초상이 가운데 쪽).
+   원칙 2-9d: 움직임(keyframes 와 transition)은 transform 과 opacity 로만, 끝없이 도는 애니메이션 없음. */
+.fwr{--fwr-bg:var(--bg,#0b0e14);--fwr-panel:var(--panel,#121722);--fwr-panel2:var(--panel2,#181f2e);--fwr-line:var(--line,#243047);--fwr-fg:var(--fg,#dfe6f3);--fwr-dim:var(--dim,#8b97ad);--fwr-cyan:var(--cyan,#4fd8ff);--fwr-mag:var(--mag,#ff5fb0);--fwr-amber:var(--amber,#ffc857);--fwr-red:var(--red,#ff6b6b);--fwr-green:var(--green,#5fe0a0);--fwr-num:var(--mono,"SF Mono",Menlo,Consolas,monospace);--fwr-kr:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;container-type:inline-size;container-name:fwr;display:block;min-width:0;outline:0;color:var(--fwr-fg);font:13px/1.4 var(--fwr-kr);font-variant-numeric:tabular-nums;text-align:left;-webkit-tap-highlight-color:transparent}
+.fwr *,.fwr *::before,.fwr *::after{box-sizing:border-box}
+.fwr i,.fwr em{font-style:normal}
+.fwr h2,.fwr h3,.fwr p{margin:0}
+.fwr .fwr-off.fwr-off{display:none}
+.fwr .fwr-left{--fwr-team:var(--fwr-cyan);--fwr-tint:rgba(79,216,255,.14)}
+.fwr .fwr-right{--fwr-team:var(--fwr-mag);--fwr-tint:rgba(255,95,176,.14)}
+.fwr .fwr-in{--fwr-face:clamp(18px,6.2cqw,26px);display:flex;flex-direction:column;gap:12px;min-width:0;max-width:900px;margin:0 auto}
+
+/* 꼬리표. 작은 표시는 바탕만, 장면 꼬리표는 호박색 테두리 */
+.fwr .fwr-chip{flex:none;display:inline-block;padding:0 6px;border-radius:4px;font-size:11px;font-weight:700;line-height:18px;white-space:nowrap;color:var(--fwr-dim);background:rgba(255,255,255,.07)}
+.fwr .fwr-chip.fwr-amber{color:var(--fwr-amber);background:rgba(255,200,87,.14)}
+.fwr .fwr-chip.fwr-team-chip{color:var(--fwr-team);background:var(--fwr-tint)}
+.fwr .fwr-chip.fwr-up{color:var(--fwr-green);background:rgba(95,224,160,.14)}
+.fwr .fwr-chip.fwr-down{color:var(--fwr-red);background:rgba(255,107,107,.14)}
+.fwr .fwr-tags{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;min-width:0}
+.fwr .fwr-tag{flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 8px;border:1px solid var(--fwr-amber);border-radius:4px;font-size:12px;font-weight:700;line-height:22px;white-space:nowrap;color:var(--fwr-amber);background:rgba(255,200,87,.08)}
+.fwr .fwr-tag.fwr-left::before,.fwr .fwr-tag.fwr-right::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--fwr-team)}
+
+/* 1. 머리: 작은 글 「함대전」, 결과 큰 글, 등급 변동 */
+.fwr .fwr-head{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;text-align:center}
+.fwr .fwr-kind{font-size:12px;line-height:16px;color:var(--fwr-dim)}
+.fwr .fwr-title{max-width:100%;font-size:22px;font-weight:700;line-height:28px;letter-spacing:.08em;text-indent:.08em;color:var(--fwr-fg);overflow-wrap:anywhere}
+.fwr .fwr-title.fwr-win{color:var(--fwr-green)}
+.fwr .fwr-title.fwr-lose{color:var(--fwr-red)}
+.fwr .fwr-title.fwr-draw{color:var(--fwr-dim)}
+.fwr .fwr-title.fwr-live{letter-spacing:0;text-indent:0}
+.fwr .fwr-rating{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 8px;min-width:0;margin-top:2px}
+.fwr .fwr-rank{font-size:12px;line-height:18px;color:var(--fwr-dim);white-space:nowrap}
+/* 보상 줄: 정예 대전 결과 화면의 「획득」 줄과 같은 차례(이름표, 자원 칸들). 등급 변동 줄 아래 가운데 */
+.fwr .fwr-got{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 6px;min-width:0;margin-top:6px}
+.fwr .fwr-gotk{margin-right:2px;font-size:11px;line-height:18px;color:var(--fwr-dim);white-space:nowrap}
+.fwr .fwr-gotc{display:inline-flex;align-items:center;gap:4px;min-width:0;padding:2px 8px;border:1px solid var(--fwr-line);border-radius:6px;background:var(--fwr-panel2);white-space:nowrap}
+.fwr .fwr-goti{flex:none;display:inline-grid;place-items:center;width:16px;height:16px;font-style:normal;line-height:1}
+.fwr .fwr-goti>*{max-width:16px;max-height:16px;margin:0}
+.fwr .fwr-gotx .fwr-goti{display:none}
+.fwr .fwr-gotn{font-size:11px;line-height:18px;color:var(--fwr-dim)}
+.fwr .fwr-gotc:not(.fwr-gotx) .fwr-gotn{display:none}
+.fwr .fwr-gotv{font:700 13px/18px var(--fwr-num);color:var(--fwr-fg)}
+
+/* 2. 팀 점수판: 윗줄은 편 이름과 남은 소대 수, 아랫줄은 편마다 지휘관 셋의 소대 점 */
+.fwr .fwr-board{display:flex;flex-direction:column;gap:12px;min-width:0;padding:12px;background:var(--fwr-panel);border:1px solid var(--fwr-line);border-radius:8px}
+.fwr .fwr-scoreline{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;min-width:0}
+.fwr .fwr-side{min-width:0;font-size:13px;font-weight:700;line-height:18px;color:var(--fwr-team);overflow-wrap:anywhere}
+.fwr .fwr-side.fwr-left{text-align:right}
+.fwr .fwr-score{display:flex;align-items:center;gap:8px;font:700 40px/1 var(--fwr-num);white-space:nowrap}
+.fwr .fwr-scorebox{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+/* 편 이름은 큰 숫자(40px)의 가운데 높이에 맞춘다. 숫자 아래 글까지 든 상자의 가운데가 아니다 */
+.fwr .fwr-scoreline{align-items:start}
+.fwr .fwr-scoreline>.fwr-side{padding-top:11px}
+.fwr .fwr-scorelb{font-size:11px;line-height:14px;color:var(--fwr-dim);white-space:nowrap}
+.fwr .fwr-a{color:var(--fwr-cyan)}
+.fwr .fwr-b{color:var(--fwr-mag)}
+.fwr .fwr-colon{font-size:20px;color:var(--fwr-dim)}
+.fwr .fwr-lines{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:16px;min-width:0}
+.fwr .fwr-team{display:flex;flex-direction:column;gap:8px;min-width:0}
+.fwr .fwr-cmd{display:flex;align-items:center;gap:4px 8px;min-width:0;min-height:18px}
+.fwr .fwr-team.fwr-left .fwr-cmd{flex-direction:row-reverse}
+.fwr .fwr-dots{flex:none;display:flex;gap:4px}
+.fwr .fwr-team.fwr-left .fwr-dots{flex-direction:row-reverse}
+.fwr .fwr-dot{flex:none;width:10px;height:10px;border:1px solid var(--fwr-team);border-radius:50%;background:var(--fwr-team)}
+.fwr .fwr-dot.fwr-dropped{background:none;opacity:.35}
+.fwr .fwr-dot.fwr-fighting{outline:1px solid var(--fwr-fg);outline-offset:2px}
+.fwr .fwr-cname{min-width:0;font-size:11px;line-height:14px;color:var(--fwr-dim);overflow-wrap:anywhere}
+.fwr .fwr-team.fwr-left .fwr-cname{text-align:right}
+
+/* 3. 최다 격파: 이름표, 그 소대 편의 색 점, 지휘관 이름과 소대, 초상 다섯, 격파 수 */
+.fwr .fwr-top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"tag kills" "who faces";align-items:center;gap:8px 12px;min-width:0;padding:10px 12px;background:var(--fwr-panel);border:1px solid var(--fwr-line);border-radius:8px}
+.fwr .fwr-toptag{grid-area:tag;justify-self:start}
+.fwr .fwr-kills{grid-area:kills;justify-self:end;font-size:14px;font-weight:700;line-height:18px;white-space:nowrap;color:var(--fwr-amber)}
+.fwr .fwr-top .fwr-who{grid-area:who}
+.fwr .fwr-top .fwr-who::before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:var(--fwr-team);vertical-align:middle}
+.fwr .fwr-top .fwr-faces{grid-area:faces;justify-self:end}
+
+/* 소대 이름 줄과 초상 묶음(소대전 줄과 최다 격파가 같이 쓴다) */
+.fwr .fwr-who{display:block;min-width:0;line-height:18px;word-spacing:2px;overflow-wrap:anywhere}
+.fwr .fwr-name{font-size:13px;font-weight:700;word-spacing:normal}
+.fwr .fwr-sq{display:inline-block;font-size:12px;white-space:nowrap;word-spacing:normal;color:var(--fwr-dim)}
+.fwr .fwr-who .fwr-chip{vertical-align:top;word-spacing:normal}
+.fwr .fwr-faces{display:flex;gap:3px;min-width:0}
+.fwr .fwr-face{flex:none;position:relative;display:grid;place-items:center;width:var(--fwr-face);height:var(--fwr-face);overflow:hidden;border:1px solid var(--fwr-line);border-radius:4px;background:var(--fwr-panel2);font-size:11px;font-weight:700;line-height:1;color:var(--fwr-dim)}
+.fwr .fwr-face img,.fwr .fwr-face .art{display:block;width:100%;height:100%;margin:0;border:0;border-radius:0;aspect-ratio:auto;object-fit:cover;object-position:50% 12%}
+.fwr .fwr-face .art>*:not(img){display:none}
+
+/* 4. 소대전 목록. 줄 하나가 누르는 것 하나. 왼쪽 띠 색이 보는 편의 승패 */
+.fwr .fwr-list{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fwr .fwr-listhead{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;min-height:24px}
+.fwr .fwr-listtitle{font-size:14px;font-weight:700;line-height:20px}
+.fwr .fwr-count{flex:none;font:12px/1 var(--fwr-num);white-space:nowrap;color:var(--fwr-dim)}
+.fwr .fwr-rows{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fwr .fwr-row{-webkit-appearance:none;appearance:none;display:grid;grid-template-columns:20px minmax(0,1fr) minmax(0,1fr) 20px;grid-template-areas:"idx mid mid go" "left left right right";align-items:center;gap:8px 12px;width:100%;min-width:0;min-height:44px;margin:0;padding:8px 8px 10px 6px;border:1px solid var(--fwr-line);border-left:3px solid var(--fwr-line);border-radius:6px;background:var(--fwr-panel);color:var(--fwr-fg);font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;transition:transform .1s}
+/* 좁은 칸에서 두 소대 칸 사이의 가운데 금(넓은 칸에서는 가운데 칸이 가른다) */
+.fwr .fwr-row::before{content:"";grid-row:2;grid-column:2/4;justify-self:center;align-self:stretch;width:1px;background:var(--fwr-line)}
+.fwr .fwr-row.fwr-win{border-left-color:var(--fwr-green)}
+.fwr .fwr-row.fwr-lose{border-left-color:var(--fwr-red)}
+.fwr .fwr-row:hover{border-top-color:var(--fwr-cyan);border-right-color:var(--fwr-cyan);border-bottom-color:var(--fwr-cyan)}
+.fwr .fwr-row:active{transform:scale(.99)}
+.fwr .fwr-row:focus{outline:0}
+.fwr .fwr-row:focus-visible{outline:1px solid var(--fwr-cyan);outline-offset:1px}
+.fwr .fwr-index{grid-area:idx;font:12px/1 var(--fwr-num);text-align:center;color:var(--fwr-dim)}
+.fwr .fwr-go{grid-area:go;justify-self:center;width:7px;height:7px;border-top:1.5px solid var(--fwr-dim);border-right:1.5px solid var(--fwr-dim);transform:translateX(-2px) rotate(45deg)}
+.fwr .fwr-mid{grid-area:mid;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 8px;min-width:0}
+.fwr .fwr-mark{display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:700;line-height:18px;white-space:nowrap;color:var(--fwr-dim)}
+.fwr .fwr-mark.fwr-to-left{color:var(--fwr-green)}
+.fwr .fwr-mark.fwr-to-right{flex-direction:row-reverse;color:var(--fwr-red)}
+.fwr .fwr-mark.fwr-to-draw{font-size:12px}
+.fwr .fwr-arrow{flex:none;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-right:7px solid currentColor}
+.fwr .fwr-mark.fwr-to-right .fwr-arrow{transform:scaleX(-1)}
+.fwr .fwr-mark.fwr-to-draw .fwr-arrow{display:none}
+.fwr .fwr-rounds{font-size:11px;line-height:18px;white-space:nowrap;color:var(--fwr-dim)}
+.fwr .fwr-squad{align-self:stretch;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:1fr auto auto;grid-template-areas:"who" "faces" "hp";align-items:center;gap:5px;min-width:0;transition:opacity .2s}
+.fwr .fwr-squad.fwr-left{grid-area:left;justify-items:end;text-align:right}
+.fwr .fwr-squad.fwr-right{grid-area:right;justify-items:start}
+.fwr .fwr-squad.fwr-lost{opacity:.5}
+.fwr .fwr-squad .fwr-who{grid-area:who;align-self:end}
+.fwr .fwr-squad .fwr-faces{grid-area:faces}
+.fwr .fwr-hp{grid-area:hp;justify-self:stretch;display:flex;align-items:center;gap:6px;min-width:0}
+.fwr .fwr-squad.fwr-left .fwr-hp{flex-direction:row-reverse}
+.fwr .fwr-bar{flex:1 1 auto;min-width:20px;height:6px;overflow:hidden;border-radius:3px;background:var(--fwr-line)}
+.fwr .fwr-fill{display:block;height:100%;border-radius:3px;background:var(--fwr-team);transform-origin:0 50%}
+.fwr .fwr-squad.fwr-left .fwr-fill{transform-origin:100% 50%}
+.fwr .fwr-pct{flex:none;min-width:32px;font:11px/1 var(--fwr-num);text-align:right;color:var(--fwr-dim)}
+.fwr .fwr-squad.fwr-left .fwr-pct{text-align:left}
+.fwr .fwr-wait{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border:1px dashed var(--fwr-line);border-radius:6px;font-size:12px;line-height:18px;text-align:center;color:var(--fwr-dim);overflow-wrap:anywhere}
+
+/* 새로 공개되는 줄이 한 번 떠오른다 */
+.fwr .fwr-row.fwr-new{animation:fwr-rise .28s ease-out both}
+@keyframes fwr-rise{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:none}}
+
+/* 아주 좁은 칸: 초상을 숨기고 이름과 체력 막대만 */
+@container fwr (max-width:279px){
+  .fwr .fwr-squad .fwr-faces{display:none}
+  .fwr .fwr-top .fwr-faces{display:none}
+}
+
+/* 부품 폭 620px 부터: 소대전 줄이 한 줄 격자(번호, 왼쪽 소대, 가운데, 오른쪽 소대, 누르는 표시), 점수판의 지휘관 셋이 가로로 */
+@container fwr (min-width:620px){
+  .fwr .fwr-in{--fwr-face:clamp(22px,3.4cqw,32px);gap:14px}
+  .fwr .fwr-board{gap:14px;padding:16px}
+  .fwr .fwr-scoreline{gap:16px}
+  .fwr .fwr-lines{gap:40px}
+  .fwr .fwr-team{flex-direction:row;align-items:flex-start;gap:12px;width:100%;max-width:372px}
+  .fwr .fwr-team.fwr-left{flex-direction:row-reverse;justify-self:end}
+  .fwr .fwr-cmd{flex:1 1 0;flex-direction:column;gap:6px}
+  .fwr .fwr-team.fwr-left .fwr-cmd{flex-direction:column}
+  .fwr .fwr-dots{gap:6px}
+  .fwr .fwr-dot{width:14px;height:14px}
+  .fwr .fwr-cname{text-align:center}
+  .fwr .fwr-team.fwr-left .fwr-cname{text-align:center}
+  .fwr .fwr-top{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"tag who faces kills";gap:12px;padding:10px 16px}
+  .fwr .fwr-row{grid-template-columns:24px minmax(0,1fr) 96px minmax(0,1fr) 24px;grid-template-areas:"idx left mid right go";gap:12px;min-height:56px;padding:10px 8px 10px 6px}
+  .fwr .fwr-row::before{display:none}
+  .fwr .fwr-mid{gap:2px 6px}
+  .fwr .fwr-mark{flex:0 0 100%;justify-content:center}
+  .fwr .fwr-squad{grid-template-rows:1fr auto;gap:6px 8px}
+  .fwr .fwr-squad.fwr-left{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"who who" "hp faces"}
+  .fwr .fwr-squad.fwr-right{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"who who" "faces hp"}
+}
+
+/* 부품 폭 820px 부터: 소대 칸 안이 가로 꼴(이름 줄과 체력 막대가 한 칸, 초상이 가운데 쪽 한 칸) */
+@container fwr (min-width:820px){
+  .fwr .fwr-row{grid-template-columns:24px minmax(0,1fr) 104px minmax(0,1fr) 24px;gap:14px}
+  .fwr .fwr-squad{gap:5px 12px}
+  .fwr .fwr-squad.fwr-left{grid-template-areas:"who faces" "hp faces"}
+  .fwr .fwr-squad.fwr-right{grid-template-areas:"faces who" "faces hp"}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .fwr .fwr-row.fwr-new{animation:none}
+  .fwr .fwr-row{transition:none}
+  .fwr .fwr-squad{transition:none}
+}
