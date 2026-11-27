@@ -1,0 +1,92 @@
+.dsk .dpf-summary{position:relative;display:flex;align-items:center;justify-content:space-between;gap:5px;width:100%;min-width:40px;padding:0 5px;text-align:left;font-size:11px}
+.dsk .dpf-summary .dsk-pf{justify-content:flex-end;margin:0}
+.dsk .dpf-summary .dsk-bar{position:absolute;inset-inline:0;bottom:0;height:3px}
+.dsk .dpf-total{word-spacing:-.6px}
+@container dsk (max-width:260px){
+  .dsk .dpf-summary{font-size:10px;gap:4px;padding-inline:3px}
+  .dsk .dpf-summary .dsk-xp{font-size:10px}
+  .dsk .dpf-summary .dpf-go{padding-inline:3px}
+}
+@container dsk (max-width:235px){
+  .dsk .dpf-summary{font-size:9px;gap:3px}
+  .dsk .dpf-summary .dpf-total{letter-spacing:-.2px;word-spacing:-2px}
+  .dsk .dpf-summary .dsk-xp{font-size:9px}
+}
+.dsk .dpf-total,.dsk .dpf-num{color:var(--dsk-amber);font-variant-numeric:tabular-nums}
+.dsk.dpf-chip .dpf-count{word-spacing:-2px}
+.dsk .dpf-go{display:grid;place-items:center;min-height:26px;padding:0 5px;border:1px solid var(--dsk-line);border-radius:5px;color:var(--dsk-dim)}
+.dsk .dpf-go.dpf-ready{border-color:var(--dsk-amber);color:var(--dsk-amber);background:rgba(255,200,87,.1)}
+.dsk .dsk-in.dsk-replace{display:flex;gap:2px;padding-block:4px}
+.dsk .dsk-in.dsk-replace:not(:has(>.dsk-ms:not(.dsk-off),>.dsk-row:not(.dsk-off))){gap:0;padding-block:0}
+.dsk .dsk-replace .dsk-sk{gap:3px}
+.dsk .dsk-replace .dsk-s{flex-wrap:nowrap;width:100%;min-height:20px}
+.dsk .dsk-replace .dsk-s + .dsk-s{padding-top:3px}
+.dsk .dsk-replace .dsk-n{flex:1 1 0;min-width:0;max-width:none;line-height:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsk .dsk-replace .dsk-d,.dsk .dpf-card-stage{display:none}
+.dsk .dsk-replace .dpf-card-stage{display:block;flex:0 0 8ch;text-align:right;white-space:nowrap;color:var(--dsk-amber);font:700 10px/14px var(--dsk-num);transform-origin:right center}
+.dsk .dsk-replace .dpf-card-stage.dpf-one{color:var(--dsk-dim)}
+.dsk .dpf-card-stage.dsk-pop,.dpf-box .dpf-level.dsk-pop{animation:dsk-bump .52s cubic-bezier(.2,.9,.3,1.25)}
+.card:not(.gfold):has(>[data-dsk-panel] .dsk-panel:not(.dsk-off) .dsk-replace)>.nm>[data-dsk-chip]:has(.dpf-chip){display:none}
+.card>.nm:has(>[data-dsk-chip]>.dpf-chip)>.gfoldb{width:20px}
+.dsk.dsk-chip.dpf-chip.dsk-off{display:inline-flex}
+.dsk.dsk-chip.dpf-chip{font-size:9px;min-width:38px;gap:1px;padding-inline:2px}
+.dsk.dsk-chip.dpf-chip::before,.dsk.dsk-chip.dpf-chip .dsk-cn,.dsk.dsk-chip.dpf-chip .dsk-cd{display:none}
+.dsk.dsk-chip.dpf-chip:not(.dpf-ready){box-shadow:inset 0 0 0 1px rgba(255,200,87,.4)}
+.dsk.dpf-keeper .dsk-lvt{font-family:var(--dsk-kr);white-space:nowrap}
+.dsk.dpf-keeper .dsk-lvt::before{display:none}
+.dsk.dpf-keeper .dsk-head,.dsk.dpf-keeper .dsk-pf{gap:4px}
+.ov.gd.dpf-overlay.confirm{z-index:111}
+.ov .box.dpf-box{width:min(100%,480px);min-width:0;max-height:calc(100dvh - max(20px,env(safe-area-inset-top)) - 20px - env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;color:var(--fg);overflow-wrap:anywhere}
+.ov .box.dpf-box:has(.dpf-scroll){display:flex;flex-direction:column;overflow:hidden}
+.dpf-box .dpf-header{flex:none}
+.dpf-box .dpf-scroll{min-height:0;overflow:auto;overscroll-behavior:contain}
+.dpf-box .dpf-name{margin-bottom:2px;color:var(--dim);font-size:11px}
+.dpf-box h3{margin:0 0 4px;font-size:15px}
+.dpf-box h3:focus{outline:none;box-shadow:none}
+.ov.gd .dpf-box p{margin:0;line-height:1.45}
+.ov.gd .dpf-box .dpf-points{margin-bottom:8px;color:var(--fg)}
+.dpf-box .dpf-balance{display:flex;align-items:center;gap:8px}
+.dpf-box .dpf-balance>.dsk-pf{max-width:180px;margin:0}
+.ov.gd .dpf-box .dpf-guide{margin:6px 0 8px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);color:var(--fg);font-size:11px}
+.dpf-box .dpf-track{padding:5px 0;border-top:1px solid var(--line)}
+.dpf-box .dpf-track-head{display:flex;align-items:center;gap:6px;width:100%;min-width:0}
+.dpf-box .dpf-track-head>b{display:flex;align-items:center;flex:1 1 0;min-width:0;line-height:22px}
+.dpf-box .dpf-skill-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dpf-box .dsk-lock .dpf-skill-name{color:var(--dsk-dim);font-weight:400}
+.dpf-box .dpf-track-head .dsk-c{margin-inline-start:4px;font-weight:400}
+.dpf-box .dpf-level{flex:none;white-space:nowrap;color:var(--dim)}
+.ov.gd .dpf-box .dpf-used{margin:0 0 4px;color:var(--dim);font-size:11px}
+.dpf-box .dsk-btn{min-width:40px;padding-inline:9px}
+/* 2026-11-26 사용자 「강화 버튼이 높이가 너무 높아서 설명 글과 거의 붙는 느낌」: 칸 머리의 강화 단추는 누르는 상자 40px 을 두고 보이는 꼴만 28px(위아래 6px 안쪽)로 그린다 */
+.dpf-box .dpf-track-head .dsk-btn,.dpf-box .dpf-track-head .dsk-btn:hover,.dpf-box .dpf-track-head .dsk-btn:focus-visible,.dpf-box .dpf-track-head .dsk-btn.dsk-go,.dpf-box .dpf-track-head .dsk-btn.dsk-go:hover,.dpf-box .dpf-track-head .dsk-btn.dsk-wait{position:relative;isolation:isolate;border-color:transparent;background:transparent;box-shadow:none}
+.dpf-box .dpf-track-head .dsk-btn::before{content:"";position:absolute;inset:6px 0;z-index:-1;border:1px solid var(--dsk-line);border-radius:6px;background:var(--dsk-panel);pointer-events:none}
+.dpf-box .dpf-track-head .dsk-btn:hover::before,.dpf-box .dpf-track-head .dsk-btn:focus-visible::before{border-color:var(--dsk-cyan)}
+.dpf-box .dpf-track-head .dsk-btn:focus-visible::before{box-shadow:0 0 0 1px var(--dsk-cyan)}
+.dpf-box .dpf-track-head .dsk-btn.dsk-go::before,.dpf-box .dpf-track-head .dsk-btn.dsk-wait::before{border-color:var(--dsk-amber)}
+.dpf-box .dpf-track-head .dsk-btn.dsk-go::before{background:rgba(255,200,87,.14)}
+.dpf-box .dpf-track-head .dsk-btn.dsk-go:hover::before{box-shadow:0 0 0 1px var(--dsk-amber)}
+.dpf-box .dpf-track-head .dsk-btn:disabled:hover::before,.dpf-box .dpf-track-head .dsk-btn.dsk-dim:hover::before{border-color:var(--dsk-line)}
+.dpf-box .dpf-table{display:grid;grid-template-columns:minmax(0,112px) minmax(0,1fr);gap:2px 8px;margin:0;font-family:inherit}
+.dpf-box .dpf-table>span{min-width:0;overflow-wrap:anywhere}
+.dpf-box .dpf-table>span:nth-child(2n+1){color:var(--dim)}
+.dpf-box .dsk-cost,.dpf-box .dsk-ms{width:100%;min-width:0}
+.dpf-box .dsk-ms{margin-top:4px}
+.ov.gd .dpf-box .dpf-why{margin-top:2px;color:var(--dim);font-size:11px}
+.ov.gd .dpf-box .dpf-bad{color:var(--red)}
+.dpf-box .dpf-reset{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:2px 8px}
+.dpf-box .dpf-reset .dpf-why{grid-column:1 / -1}
+.dpf-box .btns{margin-top:8px}
+
+.dpf-track-head .dsk-icon{--ski-size:20px;flex:none}
+
+.dpf-box .btns .act{appearance:none;min-width:40px;min-height:40px}
+.ov .dpf-box .act.ghost{color:var(--dim);border-color:var(--line);background:transparent}
+.ov .dpf-box .act.dpf-ok{color:var(--cyan);border-color:var(--cyan)}
+.dpf-box [hidden],.dsk .dpf-summary [hidden]{display:none}
+@media(max-width:480px){
+  .ov .box.dpf-box{padding-inline:14px}
+  .dpf-box .dpf-table{grid-template-columns:minmax(0,96px) minmax(0,1fr)}
+}
+@media(prefers-reduced-motion:reduce){
+  .dsk .dpf-card-stage.dsk-pop,.dpf-box .dpf-level.dsk-pop{animation:none}
+}
